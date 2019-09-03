@@ -6,7 +6,6 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>bg-admin-for-kotlin-web</module>
         <module>bg-admin-for-kotlin-web-core</module>
     </modules>
 </project>

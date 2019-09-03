@@ -36,6 +36,6 @@ interface DictDao : Mapper<Dict> {
      * @param dictCodeArray 分段模糊查询dictCode
      * @return 返回查询结果
      */
-    fun queryDictList(@Param("search") search: String, @Param("dictCodeArray") dictCodeArray: Array<String>?): List<Dict>
+    fun queryDictList(@Param("search") search: String?, @Param("dictCodeArray") dictCodeArray: List<String>?): List<Dict>
 
 }

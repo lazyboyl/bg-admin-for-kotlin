@@ -33,11 +33,13 @@
       dictValue  like concat('%',#{search},'%')
       )
     </if>
-    <foreach collection="dictCodeArray" item="dictCode">
-      <if test="dictCode!=''">
-        and dictCode like concat('%',#{dictCode},'%')
-      </if>
-    </foreach>
+    <if test="dictCodeArray!=null">
+      <foreach collection="dictCodeArray" item="dictCode">
+        <if test="dictCode!=''">
+          and dictCode like concat('%',#{dictCode},'%')
+        </if>
+      </foreach>
+    </if>
   </select>
 
 </mapper>

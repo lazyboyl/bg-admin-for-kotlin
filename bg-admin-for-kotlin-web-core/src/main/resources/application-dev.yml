@@ -5,7 +5,7 @@ server:
 logging:
   level:
     root: INFO
-    com.github.bg.admin.core: DEBUG
+    com.github.lazyboyl.vcm.kotlin.web.core: DEBUG
 
 spring:
   redis:

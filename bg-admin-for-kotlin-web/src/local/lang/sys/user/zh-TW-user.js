@@ -1,0 +1,45 @@
+export default {
+  user: {
+    title: '用户组织架构管理',
+    orgButton: {
+      addOrgButton: '新增',
+      modifyOrgButton: '修改',
+      deleteOrgButton: '删除'
+    },
+    columns: {
+      loginAccountTitle: '账号',
+      nickNameTitle: '姓名',
+      crtDateTitle: '创建时间',
+      lastLoginDateTitle: '最后登录时间',
+      operationTitle: '操作'
+    },
+    createUser: '创建用户',
+    searchText: '请输入相应的查询',
+    searchSuccessText: '查询用户列表成功',
+    searchFailText: '查询用户列表失败',
+    parentOrgName:'虚拟顶级组织',
+    addTitle: '新增用户',
+    addLoginAccountLabel: '用户账号',
+    addLoginAccountLabelHolder: '请输入用户账号',
+    addNickNameLabel:'用户姓名',
+    addNickNameHolder:'请输入用户姓名',
+    addPcaLabel:'联系地址',
+    addAddressLabel:'街道地址',
+    addAddressRuleMessage:'请输入用户地址',
+    addPcaRuleMessage:'请选择省市区',
+    addRoleLabel:'用户角色',
+    addRoleLabelHolder:'请选择相应的角色赋予用户',
+    addLoginAccountRuleMessage:'请输入用户账号',
+    addLoginAccountRuleMaxMessage:'用户账号允许输入最大长度为50个字符',
+    addNickNameRuleMessage:'请输入用户姓名',
+    addNickNameRuleMaxMessage:'用户姓名允许输入最大长度为50个字符',
+    addRolesRuleMessage:'请选择相应的用户角色',
+    addOrgIdsRuleMessage:'请选择相应的组织架构',
+    addUserFail:'新增用户失败',
+    checkUserFail:'账户验证失败',
+    updateTitle: '修改用户',
+    updateUserFail:'修改用户失败',
+    deleteUserContent:'是否删除当前用户',
+    deleteCancel:'取消删除请求',
+  }
+}

@@ -7,11 +7,16 @@ import com.github.lazyboyl.vcm.kotlin.web.core.dao.TreeDao
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.Page
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.ReturnInfo
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.Tree
+import com.github.lazyboyl.vcm.kotlin.web.core.mapper.FlightConverter
+import com.github.lazyboyl.vcm.kotlin.web.core.mapper.TreeMapper
 import com.github.lazyboyl.vcm.kotlin.web.core.util.PageUtil
+import com.github.lazyboyl.vcm.kotlin.web.core.util.TreeInstall
 import com.github.pagehelper.PageHelper
+import org.mapstruct.factory.Mappers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.bind.annotation.PostMapping
 import java.util.*
 
 /**
@@ -35,6 +40,67 @@ class TreeService {
     @Autowired
     lateinit var roleTreeDao: RoleTreeDao
 
+
+
+    /**
+     * 功能描述：根据菜单流水ID来更新菜单数据
+     * @param treeId 菜单流水ID
+     * @param treeCode 菜单编码
+     * @param treeName 菜单名称
+     * @param powerPath 权限集合
+     * @return 返回更新结果
+     */
+    fun updateTree(treeId: Int?, treeCode: String, treeName: String, powerPath: String): ReturnInfo {
+        return if (treeDao.updateTree(treeId, treeCode, treeName, powerPath) > 0) {
+            ReturnInfo(SystemStaticConst.SUCCESS, "更新菜单节点成功")
+        } else {
+            ReturnInfo(SystemStaticConst.FAIL, "更新菜单节点失败")
+        }
+    }
+
+    /**
+     * 功能描述：根据菜单ID来获取菜单数据
+     * @param treeId 菜单ID
+     * @return 返回操作结果
+     */
+    fun getTreeByTreeId(treeId: Int?): ReturnInfo {
+        val tree = treeDao.selectByPrimaryKey(treeId) ?: return ReturnInfo(SystemStaticConst.FAIL, "查无此菜单数据")
+        return ReturnInfo(SystemStaticConst.SUCCESS, "获取菜单节点成功", tree)
+    }
+
+    /**
+     * 功能描述：删除菜单节点
+     * @param treeId 菜单节点ID
+     * @return 返回删除结果
+     */
+    fun deleteTree(treeId: Int?): ReturnInfo {
+        if (treeDao.countTreeChildren(treeId) > 0) {
+            return ReturnInfo(SystemStaticConst.FAIL, "当前菜单节点底下还有其他节点，请先删除底下的节点以后再来删除当前节点")
+        }
+        return if (treeDao.deleteByPrimaryKey(treeId) > 0) {
+            roleTreeDao.deleteRoleTreeByTreeId(treeId)
+            ReturnInfo(SystemStaticConst.SUCCESS, "删除菜单节点成功")
+        } else {
+            ReturnInfo(SystemStaticConst.FAIL, "删除菜单节点失败")
+        }
+
+    }
+
+
+    /**
+     * 功能描述：冻结/解冻按钮
+     * @param treeId 节点ID
+     * @param treeState 节点状态
+     * @return 返回操作结果
+     */
+    fun operateButton(treeId: Int, treeState: String): ReturnInfo {
+        return if (treeDao.operateButton(treeId, treeState) > 0) {
+            ReturnInfo(SystemStaticConst.SUCCESS, "操作成功")
+        } else {
+            ReturnInfo(SystemStaticConst.FAIL, "操作失败")
+        }
+    }
+
     /**
      * 功能描述：增加按钮
      * @param treeCode 按钮编码
@@ -46,20 +112,21 @@ class TreeService {
      */
     fun addButton(treeCode: String, treeName: String, powerPath: String, parentTreeId: Int, treeType: String): ReturnInfo {
         val fullPath = StringBuilder()
-        val tree = Tree(treeCode = treeCode, treeName = treeName, treeType = treeType, powerPath = powerPath, treeState = TreeStaticConstant.TREE_STATE_NORMAL, parentTreeId = parentTreeId, crtDate = Date(),parentTreeName="")
+        val tree = Tree(treeCode = treeCode, treeName = treeName, treeType = treeType, powerPath = powerPath, treeState = TreeStaticConstant.TREE_STATE_NORMAL, parentTreeId = parentTreeId, crtDate = Date(), parentTreeName = "")
         if (parentTreeId == 0) {
             tree.parentTreeName = ""
         } else {
-            val parentTree = treeDao.selectByPrimaryKey(parentTreeId)?: return ReturnInfo(SystemStaticConst.FAIL, "增加按钮失败，不存在当前父菜单")
+            val parentTree = treeDao.selectByPrimaryKey(parentTreeId)
+                    ?: return ReturnInfo(SystemStaticConst.FAIL, "增加按钮失败，不存在当前父菜单")
             tree.parentTreeName = parentTree.treeName
             fullPath.append(parentTree.fullPath)
         }
-        if (treeDao.insert(tree) > 0) {
+        return if (treeDao.insert(tree) > 0) {
             fullPath.append(".").append(tree.treeId)
             treeDao.updateFullPath(fullPath.toString(), tree.treeId)
-            return ReturnInfo(SystemStaticConst.SUCCESS, "增加按钮成功", tree)
+            ReturnInfo(SystemStaticConst.SUCCESS, "增加按钮成功", tree)
         } else {
-            return ReturnInfo(SystemStaticConst.FAIL, "增加按钮失败")
+            ReturnInfo(SystemStaticConst.FAIL, "增加按钮失败")
         }
     }
 
@@ -70,13 +137,10 @@ class TreeService {
      * @return 返回验证结果
      */
     fun checkTreeCode(treeId: Int?, treeCode: String): ReturnInfo {
-        when (treeDao.checkTreeCode(treeCode, treeId) > 0) {
-            true -> {
-                return ReturnInfo(SystemStaticConst.SUCCESS, "该编码已经存在了，请修改以后再提交！", mutableMapOf(TreeStaticConstant.CHECK_TREE_TIP to TreeStaticConstant.CHECK_TREE_UN_PASS))
-            }
-            false -> {
-                return ReturnInfo(SystemStaticConst.SUCCESS, "验证通过！", mutableMapOf(TreeStaticConstant.CHECK_TREE_TIP to TreeStaticConstant.CHECK_TREE_PASS))
-            }
+        return if (treeDao.checkTreeCode(treeCode, treeId) > 0) {
+            ReturnInfo(SystemStaticConst.SUCCESS, "该编码已经存在了，请修改以后再提交！", mutableMapOf(TreeStaticConstant.CHECK_TREE_TIP to TreeStaticConstant.CHECK_TREE_UN_PASS))
+        } else {
+            ReturnInfo(SystemStaticConst.SUCCESS, "验证通过！", mutableMapOf(TreeStaticConstant.CHECK_TREE_TIP to TreeStaticConstant.CHECK_TREE_PASS))
         }
     }
 
@@ -105,12 +169,22 @@ class TreeService {
      * @return 返回删除结果
      */
     fun deleteButton(treeId: Int?): ReturnInfo {
-        if (treeDao.deleteByPrimaryKey(treeId) > 0) {
+        return if (treeDao.deleteByPrimaryKey(treeId) > 0) {
             roleTreeDao.deleteRoleTreeByTreeId(treeId)
-            return ReturnInfo(SystemStaticConst.SUCCESS, "删除按钮节点成功")
+            ReturnInfo(SystemStaticConst.SUCCESS, "删除按钮节点成功")
         } else {
-            return ReturnInfo(SystemStaticConst.FAIL, "删除按钮节点失败")
+            ReturnInfo(SystemStaticConst.FAIL, "删除按钮节点失败")
         }
+    }
+
+    /**
+     * 功能描述：获取菜单树目录
+     * @return 返回菜单目录数据
+     */
+    @PostMapping("getTreeList")
+    fun getTreeList(): ReturnInfo {
+        val flightConverter = Mappers.getMapper(FlightConverter::class.java)
+        return ReturnInfo(SystemStaticConst.SUCCESS, "加载菜单数据成功", null)
     }
 
     /**

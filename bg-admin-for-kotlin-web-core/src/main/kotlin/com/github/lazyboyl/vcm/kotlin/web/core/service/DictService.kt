@@ -10,6 +10,7 @@ import com.github.pagehelper.PageHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.HashMap
 
 @Service
 @Transactional(rollbackFor = arrayOf(Exception::class))
@@ -21,6 +22,60 @@ class DictService {
      */
     @Autowired
     lateinit var dictDao: DictDao
+
+    /**
+     * 功能描述：加载全部的字典数据
+     * @return 返回操作结果
+     */
+    fun loadAll(): ReturnInfo {
+        try {
+            return ReturnInfo(SystemStaticConst.SUCCESS, "加载全部的字典数据成功", dictDao.selectAll())
+        } catch (e: Exception) {
+            return ReturnInfo(SystemStaticConst.FAIL, "加载全部的字典数据失败！失败原因：" + e.message)
+        }
+    }
+
+    /**
+     * 功能描述：更新字典数据
+     * @param dictCode 字典编码
+     * @param dictText 字典文本
+     * @param dictValue 字典值
+     * @param id 字典流水id
+     * @return 返回更新结果
+     */
+    fun updateDict(dictCode: String, dictText: String, dictValue: String, id: String): ReturnInfo {
+        try {
+            val dict = dictDao.selectByPrimaryKey(id)
+            if (dictDao.checkTypeAndCode(id = dict?.id, dictType = dict?.dictType, dictCode = dictCode) > 0) {
+                return ReturnInfo(SystemStaticConst.FAIL, "字典类型和字典编码已经存在，请修改以后再提交！")
+            }
+            when (dictDao.updateDict(dictCode = dictCode, dictText = dictText, dictValue = dictValue, id = id) > 0) {
+                true -> return ReturnInfo(SystemStaticConst.SUCCESS, "更新字典数据成功")
+                false -> return ReturnInfo(SystemStaticConst.FAIL, "更新字典数据失败！失败原因：查无此字典数据")
+            }
+        } catch (e: Exception) {
+            return ReturnInfo(SystemStaticConst.FAIL, "更新字典数据失败！失败原因：" + e.message)
+        }
+
+
+    }
+
+    /**
+     * 功能描述：根据字典流水来获取字典数据
+     * @param id 字典流水ID
+     * @return 返回操作结果
+     */
+    fun getDict(id: String): ReturnInfo {
+        val dict = dictDao.selectByPrimaryKey(id)
+        try {
+            if (dict != null) {
+                return ReturnInfo(SystemStaticConst.SUCCESS, "获取字典数据成功", dict)
+            }
+        } catch (e: Exception) {
+            return ReturnInfo(SystemStaticConst.FAIL, "增加字典数据失败，失败原因：" + e.message)
+        }
+        return ReturnInfo(SystemStaticConst.FAIL, "获取字典数据失败！失败原因：查无此字典数据")
+    }
 
     /**
      * 功能描述： 保存数据字典的数据
@@ -35,6 +90,45 @@ class DictService {
             return ReturnInfo(SystemStaticConst.FAIL, "增加字典数据失败，失败原因：" + e.message)
         }
         return ReturnInfo(SystemStaticConst.SUCCESS, "增加字典数据成功", dict)
+    }
+
+    /**
+     * 功能描述：实现删除字典数据
+     *
+     * @param id 字典流水ID
+     * @return 返回删除结果
+     */
+    fun deleteDict(id: String): ReturnInfo {
+        try {
+            return if (dictDao.deleteByPrimaryKey(id) > 0) {
+                ReturnInfo(SystemStaticConst.SUCCESS, "删除字典数据成功")
+            } else ReturnInfo(SystemStaticConst.FAIL, "删除字典数据失败！失败原因：该字典数据不存在")
+        } catch (e: Exception) {
+            return ReturnInfo(SystemStaticConst.FAIL, "删除字典数据失败！失败原因：" + e.message)
+        }
+
+    }
+
+    /**
+     * 功能描述：验证字典的类型和编码是否重复
+     *
+     * @param id       字典流水ID
+     * @param dictType 字典类型
+     * @param dictCode 字典编码
+     * @return 返回验证结果
+     */
+    fun checkTypeAndCode(id: String?, dictType: String?, dictCode: String?): ReturnInfo {
+        val result = HashMap<String, Any>(1)
+        try {
+            if (dictDao.checkTypeAndCode(id = id, dictType = dictType, dictCode = dictCode) > 0) {
+                result["success"] = "unPass"
+            } else {
+                result["success"] = "pass"
+            }
+        } catch (e: Exception) {
+            return ReturnInfo(SystemStaticConst.FAIL, "验证请求处理失败，失败原因：" + e.message)
+        }
+        return ReturnInfo(SystemStaticConst.SUCCESS, "获取数据字典列表数据成功！", result)
     }
 
 

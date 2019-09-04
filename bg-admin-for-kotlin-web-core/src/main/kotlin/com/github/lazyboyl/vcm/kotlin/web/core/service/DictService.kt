@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.HashMap
 
 @Service
-@Transactional(rollbackFor = arrayOf(Exception::class))
+@Transactional(rollbackFor = [Exception::class])
 class DictService {
 
     /**
@@ -66,15 +66,8 @@ class DictService {
      * @return 返回操作结果
      */
     fun getDict(id: String): ReturnInfo {
-        val dict = dictDao.selectByPrimaryKey(id)
-        try {
-            if (dict != null) {
-                return ReturnInfo(SystemStaticConst.SUCCESS, "获取字典数据成功", dict)
-            }
-        } catch (e: Exception) {
-            return ReturnInfo(SystemStaticConst.FAIL, "增加字典数据失败，失败原因：" + e.message)
-        }
-        return ReturnInfo(SystemStaticConst.FAIL, "获取字典数据失败！失败原因：查无此字典数据")
+        val dict = dictDao.selectByPrimaryKey(id)?:return ReturnInfo(SystemStaticConst.FAIL, "获取字典数据失败！失败原因：查无此字典数据")
+        return ReturnInfo(SystemStaticConst.SUCCESS, "获取字典数据成功", dict)
     }
 
     /**

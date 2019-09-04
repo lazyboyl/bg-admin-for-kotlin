@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.lazyboyl.vcm.kotlin.web.core.dao.TreeDao">
+    <resultMap id="BaseResultMap" type="com.github.lazyboyl.vcm.kotlin.web.core.entity.Tree">
+        <id column="treeId" jdbcType="INTEGER" property="treeId"/>
+        <result column="treeName" jdbcType="VARCHAR" property="treeName"/>
+        <result column="treeCode" jdbcType="VARCHAR" property="treeCode"/>
+        <result column="treeState" jdbcType="VARCHAR" property="treeState"/>
+        <result column="treeType" jdbcType="VARCHAR" property="treeType"/>
+        <result column="parentTreeId" jdbcType="INTEGER" property="parentTreeId"/>
+        <result column="parentTreeName" jdbcType="VARCHAR" property="parentTreeName"/>
+        <result column="crtDate" jdbcType="TIMESTAMP" property="crtDate"/>
+        <result column="fullPath" jdbcType="VARCHAR" property="fullPath"/>
+        <result column="powerPath" jdbcType="VARCHAR" property="powerPath"/>
+    </resultMap>
+
+    <!-- 获取当前登录的用户的权限 -->
+    <select id="getLoginUserPowerPath" resultMap="BaseResultMap">
+       select tt.* from t_tree tt inner join t_role_tree ttt on tt.treeId = ttt.treeId where ttt.roleId in
+       (select tur.roleId from t_user_role tur where tur.userId = #{userId} )
+    </select>
+
+    <!-- 根据用户登录的ID来获取菜单节点的数据 -->
+    <select id="getLoginUserTree" resultMap="BaseResultMap">
+        select tt.* from t_tree tt left join  t_role_tree trr on tt.treeId = trr.treeId where trr.roleId in
+        (select tur.roleId from t_user tu left join t_user_role tur on tu.userId = tur.userId  where
+        tu.userId = #{userId}  )
+    </select>
+
+    <!-- 更新菜单节点 -->
+    <update id="updateTree">
+        update t_tree set treeName = #{treeName} ,treeCode = #{treeCode},powerPath=#{powerPath} where treeId = #{treeId}
+    </update>
+
+    <!-- 判断当前菜单节点底下是否还有子节点 -->
+    <select id="countTreeChildren" resultType="java.lang.Integer">
+        select count(*) from t_tree where parentTreeId = #{treeId}
+    </select>
+
+    <!-- 冻结/解冻按钮 -->
+    <update id="operateButton">
+        update t_tree set treeState = #{treeState} where  treeId = #{treeId}
+    </update>
+
+    <!-- 更新节点的路径 -->
+    <update id="updateFullPath">
+        update t_tree set fullPath = #{fullPath} where  treeId = #{treeId}
+    </update>
+
+    <!-- 更新按钮节点 -->
+    <update id="updateButton">
+        update t_tree set treeCode = #{treeCode},treeName = #{treeName},powerPath=#{powerPath} where treeId = #{treeId}
+    </update>
+
+    <!-- 验证菜单节点或者按钮节点的编码是否已经存在了 -->
+    <select id="checkTreeCode" resultType="java.lang.Integer">
+        select count(*) from t_tree where treeCode = #{treeCode}
+        <if test="treeId != 0">
+            and treeId != #{treeId}
+        </if>
+    </select>
+
+    <!-- 获取菜单的按钮的列表 -->
+    <select id="queryTreeButtonList" resultMap="BaseResultMap">
+        select * from t_tree where treeType = '2' and parentTreeId = #{parentTreeId}
+        <if test="search != null  and search !=''">
+            and (
+            treeName like concat('%',#{search},'%') or
+            treeCode like concat('%',#{search},'%')
+            )
+        </if>
+    </select>
+
+    <!-- 根据角色ID来查询该角色底下的所有的关联的菜单的数据 -->
+    <select id="queryTreeByRoleId" resultMap="BaseResultMap">
+     select tt.* from t_tree tt inner join t_role_tree trt on tt.treeId = trt.treeId where trt.roleId = #{roleId}
+    </select>
+
+</mapper>

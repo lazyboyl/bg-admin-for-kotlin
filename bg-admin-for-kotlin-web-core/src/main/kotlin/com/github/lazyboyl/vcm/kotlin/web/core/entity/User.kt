@@ -24,7 +24,7 @@ class User : Serializable {
     @Id
     @Column(name = "userId")
     @KeySql(genId = UuidGenId::class)
-    var userId: String? = null
+    var userId: String? = ""
 
     /**
      * 用户登录账号

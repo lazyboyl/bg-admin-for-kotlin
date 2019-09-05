@@ -1,6 +1,9 @@
 package com.github.lazyboyl.vcm.kotlin.web.core.util
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DataAccessException
+import org.springframework.data.redis.connection.RedisConnection
+import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.util.ArrayList
@@ -29,6 +32,24 @@ class RedisCache {
     }
 
     /**
+     * 功能描述：删除KEY
+     * @param key
+     * @return
+     */
+    fun deleteKey(key: String) {
+        redisTemplate.delete(key)
+    }
+
+    /**
+     * 功能描述：获取key的过期时间
+     * @param key
+     * @return
+     */
+    fun getExpire(key: String): Long {
+        return redisTemplate.getExpire(key)
+    }
+
+    /**
      * 功能描述：设值到redis中
      * @param key redis的key
      * @param obj key所对应的对象
@@ -37,7 +58,22 @@ class RedisCache {
         val bytes = SerializeUtil.serialize(obj)
         redisTemplate.execute {
             it.set(redisTemplate.stringSerializer.serialize(key)!!, bytes)
-            null
+        }
+    }
+
+    /**
+     * 功能描述：设值到redis中
+     * @param key redis的key
+     * @param obj key所对应的对象
+     */
+    fun setObject(key: String, obj: Any,time: Int) {
+        val bytes = SerializeUtil.serialize(obj)
+        redisTemplate.execute {
+            val serializer = redisTemplate.stringSerializer
+            it.set(serializer.serialize(key)!!, bytes)
+            if (time > 0) {
+                it.expire(serializer.serialize(key)!!, time.toLong())
+            }
         }
     }
 
@@ -64,6 +100,23 @@ class RedisCache {
         return redisTemplate.execute {
             val serializer = redisTemplate.stringSerializer
             it.set(serializer.serialize(key)!!, serializer.serialize(value)!!)
+            true
+        }
+    }
+
+    /**
+     * 功能描述：将键值设置到redis中且设置过期时间
+     * @param key redis的key
+     * @param value key所对应的值
+     * @param time 过期时间
+     */
+    fun setString(key: String, value: String, time: Int): Boolean? {
+        return redisTemplate.execute {
+            val serializer = redisTemplate.stringSerializer
+            it.set(serializer.serialize(key)!!, serializer.serialize(value)!!)
+            if (time > 0) {
+                it.expire(serializer.serialize(key)!!, time.toLong())
+            }
             true
         }
     }

@@ -7,12 +7,10 @@ import com.github.lazyboyl.vcm.kotlin.web.core.dao.TreeDao
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.Page
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.ReturnInfo
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.Tree
-import com.github.lazyboyl.vcm.kotlin.web.core.mapper.FlightConverter
 import com.github.lazyboyl.vcm.kotlin.web.core.mapper.TreeMapper
 import com.github.lazyboyl.vcm.kotlin.web.core.util.PageUtil
 import com.github.lazyboyl.vcm.kotlin.web.core.util.TreeInstall
 import com.github.pagehelper.PageHelper
-import org.mapstruct.factory.Mappers
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -39,6 +37,12 @@ class TreeService {
      */
     @Autowired
     lateinit var roleTreeDao: RoleTreeDao
+
+    /**
+     * 菜单的实体转换
+     */
+    @Autowired
+    lateinit var treeMapper: TreeMapper
 
 
 
@@ -183,8 +187,7 @@ class TreeService {
      */
     @PostMapping("getTreeList")
     fun getTreeList(): ReturnInfo {
-        val flightConverter = Mappers.getMapper(FlightConverter::class.java)
-        return ReturnInfo(SystemStaticConst.SUCCESS, "加载菜单数据成功", null)
+        return ReturnInfo(SystemStaticConst.SUCCESS, "加载菜单数据成功",  TreeInstall.installTree(treeMapper.treesToTreeDTO(treeDao.select(Tree(TreeStaticConstant.TREE_STATE_NORMAL,TreeStaticConstant.TREE_TYPE_MENU)))))
     }
 
     /**

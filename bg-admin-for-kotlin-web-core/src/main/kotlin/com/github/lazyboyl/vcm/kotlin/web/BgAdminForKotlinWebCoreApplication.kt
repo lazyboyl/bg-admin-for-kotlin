@@ -12,5 +12,6 @@ class BgAdminForKotlinWebCoreApplication
 
 fun main(args: Array<String>) {
     runApplication<BgAdminForKotlinWebCoreApplication>(*args)
+
 }
 

@@ -67,7 +67,7 @@ class TreeService {
      * @param treeId 菜单ID
      * @return 返回操作结果
      */
-    fun getTreeByTreeId(treeId: Int?): ReturnInfo {
+    fun getTreeByTreeId(treeId: Int): ReturnInfo {
         val tree = treeDao.selectByPrimaryKey(treeId) ?: return ReturnInfo(SystemStaticConst.FAIL, "查无此菜单数据")
         return ReturnInfo(SystemStaticConst.SUCCESS, "获取菜单节点成功", tree)
     }
@@ -172,7 +172,7 @@ class TreeService {
      * @param treeId 按钮的ID
      * @return 返回删除结果
      */
-    fun deleteButton(treeId: Int?): ReturnInfo {
+    fun deleteButton(treeId: Int): ReturnInfo {
         return if (treeDao.deleteByPrimaryKey(treeId) > 0) {
             roleTreeDao.deleteRoleTreeByTreeId(treeId)
             ReturnInfo(SystemStaticConst.SUCCESS, "删除按钮节点成功")

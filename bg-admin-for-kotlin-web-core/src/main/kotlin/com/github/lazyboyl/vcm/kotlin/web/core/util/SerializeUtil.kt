@@ -18,8 +18,8 @@ class SerializeUtil {
          * 功能描述： 将对象序列化
          */
         fun serialize(`object`: Any): ByteArray {
-            var oos: ObjectOutputStream? = null
-            var baos: ByteArrayOutputStream? = null
+            var oos: ObjectOutputStream?
+            var baos: ByteArrayOutputStream?
             try {
                 // 序列化
                 baos = ByteArrayOutputStream()
@@ -36,7 +36,7 @@ class SerializeUtil {
          * 功能描述： 将对象反序列化
          */
         fun unserialize(bytes: ByteArray): Any {
-            var bais: ByteArrayInputStream? = null
+            var bais: ByteArrayInputStream?
             try {
                 // 反序列化
                 bais = ByteArrayInputStream(bytes)

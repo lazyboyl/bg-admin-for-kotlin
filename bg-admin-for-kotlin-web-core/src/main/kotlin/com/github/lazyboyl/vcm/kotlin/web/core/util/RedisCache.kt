@@ -1,7 +1,6 @@
 package com.github.lazyboyl.vcm.kotlin.web.core.util
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Component
 import java.util.ArrayList
@@ -14,31 +13,30 @@ class RedisCache {
 
     /**
      * 功能描述：从redis中获取数据
-     * @param key
-     * @param elementType
-     * @param <T>
-     * @return
-    </T> */
+     * @param key redis的key
+     * @param elementType 获取以后需要转换的对象
+     * @return T 返回的泛型
+     **/
     fun <T> getObject(key: String, elementType: Class<T>): T? {
-        return redisTemplate.execute(RedisCallback { connection ->
+        return redisTemplate.execute {
             val keyBytes = redisTemplate.stringSerializer.serialize(key)
-            if (connection.exists(keyBytes!!)!!) {
-                val valueBytes = connection.get(keyBytes)
-                return@RedisCallback SerializeUtil.unserialize(valueBytes!!) as T
+            if (it.exists(keyBytes!!)!!) {
+                val valueBytes = it.get(keyBytes)
+                SerializeUtil.unserialize(valueBytes!!) as T
             }
             null
-        })
+        }
     }
 
     /**
      * 功能描述：设值到redis中
-     * @param key
-     * @param obj
+     * @param key redis的key
+     * @param obj key所对应的对象
      */
     fun setObject(key: String, obj: Any) {
         val bytes = SerializeUtil.serialize(obj)
-        redisTemplate.execute { connection ->
-            connection.set(redisTemplate.stringSerializer.serialize(key)!!, bytes)
+        redisTemplate.execute {
+            it.set(redisTemplate.stringSerializer.serialize(key)!!, bytes)
             null
         }
     }
@@ -52,19 +50,28 @@ class RedisCache {
         val keys = ArrayList<String>()
         val result = redisTemplate.keys("$key*")
         for (s in result) {
-            keys.add(this.getString(s)?:"")
+            keys.add(this.getString(s) ?: "")
         }
         return keys
     }
 
+    /**
+     * 功能描述：将键值设置到redis中
+     * @param key redis的key
+     * @param value key所对应的值
+     */
     fun setString(key: String, value: String): Boolean? {
-        return redisTemplate.execute{
+        return redisTemplate.execute {
             val serializer = redisTemplate.stringSerializer
             it.set(serializer.serialize(key)!!, serializer.serialize(value)!!)
             true
         }
     }
 
+    /**
+     * 功能描述：根据key从redis中获取数据
+     * @param key redis的key
+     */
     fun getString(key: String): String? {
         return redisTemplate.execute {
             val serializer = redisTemplate.stringSerializer

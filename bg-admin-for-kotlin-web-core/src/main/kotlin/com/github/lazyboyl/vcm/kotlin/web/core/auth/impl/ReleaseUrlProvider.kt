@@ -25,9 +25,6 @@ class ReleaseUrlProvider: ReleaseUrl {
      * @return 返回放行的权限的数据
      */
     override fun getReleaseUrl(): String {
-        if (releaseUrl == null) {
-            releaseUrl = ""
-        }
         releaseUrl = releaseUrl + ":" + SystemStaticConst.LOGIN_URL + ":" + SystemStaticConst.USER_INFO_URL + ":" + SystemStaticConst.REFRESH_URL
         return releaseUrl
     }

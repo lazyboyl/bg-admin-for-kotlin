@@ -1,5 +1,6 @@
 package com.github.lazyboyl.vcm.kotlin.web.core.controller
 
+import com.github.lazyboyl.vcm.kotlin.web.core.annotation.AuthController
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.Dict
 import com.github.lazyboyl.vcm.kotlin.web.core.entity.ReturnInfo
 import com.github.lazyboyl.vcm.kotlin.web.core.service.DictService
@@ -115,6 +116,7 @@ class DictController {
      */
     @ApiOperation(value = "获取数据字典列表")
     @PostMapping("queryDictList")
+    @AuthController(authorities = ["roleAdmin"])
     fun queryDictList(@RequestParam(name = "search", required = false) search: String?,
                       @RequestParam(name = "dictCode", required = false) dictCode: String?,
                       @RequestParam(name = "pageSize") pageSize: Int,

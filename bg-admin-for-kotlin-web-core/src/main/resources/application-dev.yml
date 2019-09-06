@@ -54,7 +54,7 @@ auth:
   # refreshToken过期时间
   refreshTokenExpire: 7200
   # 放行的权限列表，采用小写的冒号分隔
-  releaseUrl: /user/refreshToken
+  releaseUrl: /user/refreshToken:/swagger-ui.html:/swagger-resources/configuration/ui:/swagger-resources/configuration/security
   # false表示用户单点登陆,true表示用户多点登录
   singleLanding: false
   # 私钥的key

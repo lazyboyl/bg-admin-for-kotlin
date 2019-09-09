@@ -65,7 +65,7 @@ class TreeInstall {
                     } else {
                         tree.checked = false
                     }
-                    if (tree.children!!.size > 0) {
+                    if (tree.children!!.isNotEmpty()) {
                         for (checkTree in tree.children!!) {
                             if (!checkTree.checked) {
                                 tree.checked = false

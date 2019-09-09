@@ -25,7 +25,7 @@ interface UserDao : Mapper<User> {
      * @param token token的值
      * @return 返回获取的结果
      */
-    fun getUserInfo(@Param("token") token: String): User
+    fun getUserInfo(@Param("token") token: String): User?
 
     /**
      * 功能描述：实现用户的登陆

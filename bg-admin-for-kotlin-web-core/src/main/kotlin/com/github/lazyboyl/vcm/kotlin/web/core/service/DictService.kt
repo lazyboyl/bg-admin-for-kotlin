@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.HashMap
 
+/**
+ * 类描述：数据字典的service
+ * @author linzf
+ * @since 2019-09-09
+ */
 @Service
 @Transactional(rollbackFor = [Exception::class])
 class DictService {

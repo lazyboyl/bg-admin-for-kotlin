@@ -91,6 +91,7 @@
           file.url = this.$runConfig.runConfig.imgUrl + '/' + res.obj.url;
           file.name = res.obj.name;
           this.uploadList.push(file);
+          console.log('this.uploadList=>'+JSON.stringify(this.uploadList))
         } else {
           this.$Notice.warning({
             title: '文件上传失败',

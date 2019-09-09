@@ -202,7 +202,7 @@ class TreeService {
      * @return 返回查询结果
      */
     fun queryTreeButtonList(search: String, parentTreeId: Int?, pageSize: Int, current: Int, orderKey: String?, orderByValue: String?): ReturnInfo {
-        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (orderKey != null) if (orderByValue != null) "$orderKey $orderByValue" else orderKey else "")
+        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (!orderKey.isNullOrEmpty()) if (!orderByValue.isNullOrEmpty()) "$orderKey $orderByValue" else orderKey else "")
         val res = PageUtil.getResult(treeDao.queryTreeButtonList(search, parentTreeId))
         return ReturnInfo(SystemStaticConst.SUCCESS, "获取按钮列表数据成功！", Page(pageSize = pageSize, current = current, total = res["total"] as Long, rows = res["rows"] as List<*>))
     }

@@ -1,10 +1,9 @@
 import main from '../view/main/main.vue';
 
-
 export default [
   {
-    path: '/login',
-    name: 'login',
+    path: '/',
+    name: 'login_default',
     meta: {
       icon: 'ios-settings',
       hideInMenu: true,
@@ -16,8 +15,8 @@ export default [
     }
   },
   {
-    path: '/',
-    name: 'login-default',
+    path: '/login',
+    name: 'login',
     meta: {
       icon: 'ios-settings',
       hideInMenu: true,
@@ -48,34 +47,21 @@ export default [
     meta: {
       icon: 'ios-construct',
       title: '系统管理',
-      code: 'system-manage',
+      code:'system-manage',
       requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
     },
-    children: [
+    children:[
       {
         path: 'dictList',
         name: 'dictList',
         meta: {
           icon: 'ios-paper',
           title: '字典维护',
-          code: 'system-manage-dict',
+          code:'system-manage-dict',
           requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
         },
         component: resolve => {
           require(['../view/sys/dict/dictList.vue'], resolve);
-        }
-      },
-      {
-        path: 'roleList',
-        name: 'roleList',
-        meta: {
-          icon: 'ios-cog',
-          title: '角色管理',
-          code: 'system-manage-role',
-          requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
-        },
-        component: resolve => {
-          require(['../view/sys/role/roleList.vue'], resolve);
         }
       },
       {
@@ -84,11 +70,24 @@ export default [
         meta: {
           icon: 'md-git-network',
           title: '菜单管理',
-          code: 'system-manage-tree',
+          code:'system-manage-tree',
           requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
         },
         component: resolve => {
           require(['../view/sys/tree/treeList.vue'], resolve);
+        }
+      },
+      {
+        path: 'roleList',
+        name: 'roleList',
+        meta: {
+          icon: 'ios-cog',
+          title: '角色管理',
+          code:'system-manage-role',
+          requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
+        },
+        component: resolve => {
+          require(['../view/sys/role/roleList.vue'], resolve);
         }
       },
       {
@@ -97,24 +96,11 @@ export default [
         meta: {
           icon: 'ios-people',
           title: '用户组织',
-          code: 'system-manage-user',
+          code:'system-manage-user',
           requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
         },
         component: resolve => {
           require(['../view/sys/user/orgList.vue'], resolve);
-        }
-      },
-      {
-        path: 'behaviorList',
-        name: 'behaviorList',
-        meta: {
-          icon: 'ios-browsers',
-          title: '行为日志',
-          code: 'system-manage-behavior',
-          requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
-        },
-        component: resolve => {
-          require(['../view/sys/behavior/behaviorList.vue'], resolve);
         }
       },
       {
@@ -123,7 +109,7 @@ export default [
         meta: {
           icon: 'ios-chatbubbles',
           title: '消息管理',
-          code: 'system-manage-message',
+          code:'system-manage-message',
           requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
         },
         component: resolve => {
@@ -131,29 +117,16 @@ export default [
         }
       },
       {
-        path: 'languageList',
-        name: 'languageList',
+        path: 'behaviorList',
+        name: 'behaviorList',
         meta: {
-          icon: 'ios-paper',
-          title: '语言维护',
-          code: 'system-manage-language',
-          requireAuth: true
-        },
-        component: resolve => {
-          require(['../view/sys/language/languageList.vue'], resolve);
-        }
-      },
-      {
-        path: 'internationalizationList',
-        name: 'internationalizationList',
-        meta: {
-          icon: 'logo-vimeo',
-          title: '国际化新版',
-          code: 'system-manage-internationalization',
+          icon: 'ios-browsers',
+          title: '行为日志',
+          code:'system-manage-behavior',
           requireAuth: true //表示当前响应的请求是否需要进行登录拦截验证【true：需要；false：不需要】
         },
         component: resolve => {
-          require(['../view/sys/internationalization/internationalizationList.vue'], resolve);
+          require(['../view/sys/behavior/behaviorList.vue'], resolve);
         }
       }
     ]

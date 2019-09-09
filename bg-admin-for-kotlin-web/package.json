@@ -1,18 +1,16 @@
 {
-  "name": "vcm-web",
+  "name": "bg-admin-web",
   "version": "1.0.0",
-  "description": "持续集成前端页面",
-  "author": "林泽锋 <282245889@qq.com>",
+  "description": "这是一个前后端分离的架构例子",
+  "author": "林泽锋",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
-    "lint": "eslint --ext .js,.vue src",
     "build": "node build/build.js"
   },
   "dependencies": {
     "axios": "^0.15.3",
-    "axios-mock-adapter": "^1.16.0",
     "clipboard": "^2.0.1",
     "echarts": "^3.4.0",
     "font-awesome": "^4.7.0",
@@ -23,12 +21,12 @@
     "vue-i18n": "^7.8.0",
     "vue-router": "^3.0.1",
     "vuex": "^2.2.1",
-    "jsencrypt": "^3.0.0-rc.1",
-    "viewerjs": "^1.2.0",
     "socket.io-client": "^2.2.0",
-    "iview-area":"^1.6.0"
+    "jsencrypt": "^3.0.0-rc.1",
+    "vue-easy-print":"^0.0.8"
   },
   "devDependencies": {
+    "mockjs": "^1.0.1-beta3",
     "autoprefixer": "^7.1.2",
     "babel-core": "^6.22.1",
     "babel-eslint": "^8.2.1",
@@ -87,7 +85,7 @@
     "style-loader": "^0.19.1",
     "vue-hot-reload-api": "^2.2.4",
     "vue-html-loader": "^1.2.3",
-    "mockjs": "^1.0.1-beta3"
+    "iview-area":"^1.6.0"
   },
   "engines": {
     "node": ">= 6.0.0",

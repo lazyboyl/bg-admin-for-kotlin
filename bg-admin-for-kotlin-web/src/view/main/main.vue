@@ -1,7 +1,8 @@
 <template>
   <div class="layout">
     <Layout>
-      <Header class="layout-header" id="layout-header-scroll">
+      <!--  Header 表示头部的位置-->
+      <Header id="layout-header-scroll">
         <Menu mode="horizontal" theme="dark" active-name="1">
           <div class="layout-logo">
             <img height="50px" width="50px" src="../../assets/logo.png"/>
@@ -63,9 +64,10 @@
           </div>
         </Menu>
       </Header>
+      <!-- 此处表示的是左侧的菜单栏的布局 -->
       <Layout>
-        <Sider hide-trigger :style="{background: '#fff', minHeight: 'calc(100vh - 100px)'}">
-          <Menu active-name="" theme="light" width="auto" :open-names="['system-manage']">
+        <Sider hide-trigger :style="{background: '#fff'}">
+          <Menu active-name="1-2" theme="light" width="auto" :open-names="['system-manage']">
             <template v-for="item in menuList">
               <Submenu :name=item.meta.code>
                 <template slot="title">
@@ -84,6 +86,7 @@
           </Menu>
         </Sider>
         <Layout :style="{padding: '0 24px 24px'}">
+          <!--  此处是面包屑导航条 -->
           <Breadcrumb :style="{margin: '24px 0'}">
             <BreadcrumbItem>
               <Icon type="ios-home-outline"></Icon>
@@ -94,6 +97,7 @@
               {{showBreadcrumbItem(item)}}
             </BreadcrumbItem>
           </Breadcrumb>
+          <!-- 此处存放的是文本内容的区域 -->
           <Content :style="{padding: '24px', minHeight: '280px', background: '#fff'}">
             <router-view/>
           </Content>
@@ -105,10 +109,10 @@
 </template>
 <script>
   import Language from '../../components/language';
-  import changePassword from './changePassword';
   import {mapMutations, mapActions} from 'vuex';
-  import io from 'socket.io-client'
+  import changePassword from './changePassword';
   import {queryUserMsg,readMsg} from '../../api/sys/msg/msg.api';
+  import io from 'socket.io-client'
 
   export default {
     components: {
@@ -128,27 +132,8 @@
         'setBreadCrumb'
       ]),
       ...mapActions([
-        'setUserLanguage',
         'handleLogOut'
       ]),
-      userAction(name) {
-        // 实现退出登录
-        if (name == 'loginOut') {
-          this.handleLogOut();
-          this.turnToView('login');
-          // 实现修改密码
-        } else if (name == 'regPass') {
-          this.showChangePassword = true;
-        }
-      },
-      turnToView(name) {
-        this.$router.push({
-          name: name
-        })
-      },
-      showBreadcrumbItem(item) {
-        return (item.meta && item.meta.title) || item.name
-      },
       /**
        * 顶部跟随着滚动条的变化而滚动
        */
@@ -160,9 +145,47 @@
           document.querySelector('#layout-header-scroll').style.top = '0px';
         }
       },
+      userAction(name) {
+        // 实现退出登录
+        if (name == 'loginOut') {
+          this.handleLogOut();
+          this.turnToView('login');
+          // 实现修改密码
+        } else if (name == 'regPass') {
+          this.showChangePassword = true;
+        }
+      },
       setLanguage(lang) {
         this.local = lang
-        this.setUserLanguage(lang)
+        localStorage.setItem('lang', lang)
+      },
+      showBreadcrumbItem(item) {
+        return (item.meta && item.meta.title) || item.name
+      },
+      turnToView(name) {
+        this.$router.push({
+          name: name
+        })
+      },
+      showMsg(title,content,index,targetMessageId){
+        readMsg({targetMessageId}).then(res=>{
+          if (res.code == 200) {
+            this.$Modal.info({title,content});
+            this.msgList.splice(index,index+1)
+          } else {
+            this.$Message.error(res.msg)
+          }
+        });
+      },
+      initMsg() {
+        queryUserMsg({}).then(res => {
+          if (res.code == 200) {
+            this.msgCount = res.obj.length;
+            this.msgList = res.obj;
+          } else {
+            this.$Message.error(res.msg)
+          }
+        })
       },
       initSocketIo(socketToken,refreshToken){
         let _this = this;
@@ -174,35 +197,15 @@
           console.log("连接成功");
         });
         socket.on('push_event', function (data) {
+          console.log(data);
+          _this.initMsg();
           _this.$Notice.info({
             title: '消息通知',
             desc: data.content
           });
-          _this.initMsg();
         });
         socket.on('disconnect', function () {
           console.log("已经下线");
-        });
-      },
-      initMsg(){
-        queryUserMsg({}).then(res => {
-          if (res.code == 200) {
-            this.msgCount = res.obj.length;
-            this.msgList = res.obj;
-          } else {
-            this.$Message.error(res.msg)
-          }
-        })
-      },
-      showMsg(title,content,index,targetMessageId){
-        readMsg({targetMessageId}).then(res=>{
-          if (res.code == 200) {
-            this.$Modal.info({title,content});
-            this.msgList.splice(index,index+1)
-            this.msgCount = this.msgList.length;
-          } else {
-            this.$Message.error(res.msg)
-          }
         });
       }
     },
@@ -220,17 +223,13 @@
       },
       nickName() {
         return this.$store.getters.nickName;
-      },
-      socketContent(){
-        return this.$store.getters.socketContent;
       }
     },
     mounted() {
       /**
        * 监听滚动条的滚动事件
        */
-      window.addEventListener('scroll', this.handleScroll);
-      this.setLanguage(localStorage.getItem("lang"));
+      window.addEventListener('scroll', this.handleScroll)
       /**
        * 开启socket的监听
        */
@@ -242,7 +241,7 @@
 <style scoped>
   .layout-header {
     position: relative;
-    z-index: 998;
+    z-index: 999;
     height: 60px;
   }
 
@@ -252,7 +251,6 @@
     position: relative;
     border-radius: 4px;
     overflow: hidden;
-    min-height: calc(100vh);
   }
 
   .layout-logo {

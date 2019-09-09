@@ -1,4 +1,4 @@
-import {getBreadCrumbList, getHomeRoute} from '../../libs/util';
+import {getBreadCrumbList, getHomeRoute} from '../../lib/util';
 import router from '../../router/router';
 
 export default {

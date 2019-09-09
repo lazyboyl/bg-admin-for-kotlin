@@ -16,7 +16,7 @@
           </div>
         </Menu>
       </Header>
-      <Content :style="{ background: '#fff', minHeight: 'calc(100vh - 65px)'}">
+      <Content :style="{ background: '#fff', minHeight: '500px'}">
         <div style="float: right;margin: 100px 100px 0">
           <Card title="欢迎登录XX系统">
             <Form ref="loginForm" :model="loginForm" :rules="loginFormRule">
@@ -28,7 +28,7 @@
                 </FormItem>
                 <FormItem prop="loginPassword">
                   密码：<Input v-model="loginForm.loginPassword" prefix="ios-compass" type="password"
-                            :placeholder="$t('login.loginPassword')" @on-enter="loginSystem" style="width: 200px;"/>
+                            :placeholder="$t('login.loginPassword')" style="width: 200px;"/>
                 </FormItem>
               </div>
             </Form>
@@ -101,16 +101,7 @@
         localStorage.setItem('lang', lang)
       }
     },
-    computed: {
-      msg() {
-        return this.$store.getters.msg;
-      },
-      token() {
-        return this.$store.getters.token;
-      }
-    },
     mounted() {
-      this.setLanguage(localStorage.getItem("lang"))
     }
   }
 </script>
@@ -128,7 +119,6 @@
     position: relative;
     border-radius: 4px;
     overflow: hidden;
-    min-height: calc(100vh);
   }
 
   .layout-nav {

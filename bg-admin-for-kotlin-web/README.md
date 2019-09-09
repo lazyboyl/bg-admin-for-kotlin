@@ -1,6 +1,6 @@
-# vcm-web
+# bg-admin-web
 
-> 持续集成前端页面
+> 这是一个前后端分离的架构例子
 
 ## Build Setup
 

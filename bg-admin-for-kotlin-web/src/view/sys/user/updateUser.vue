@@ -1,26 +1,25 @@
 <template>
-  <Modal v-model="show" :title="$t('user.updateTitle')" @on-ok="ok" :loading="loading" :mask-closable="false">
+  <Modal v-model="show" title="修改用户" @on-ok="ok" :loading="loading" :mask-closable="false">
     <Form ref="userForm" :model="userForm" :rules="userFormRule">
-      <FormItem :label="$t('user.addLoginAccountLabel')">
+      <FormItem label="用户账号">
         <Input type="text" :maxlength=50 v-model="userForm.loginAccount" disabled/>
       </FormItem>
-      <FormItem :label="$t('user.addNickNameLabel')" prop="nickName">
-        <Input type="text" :maxlength=50 v-model="userForm.nickName" :placeholder="$t('user.addNickNameHolder')"/>
+      <FormItem label="用户名称" prop="nickName">
+        <Input type="text" :maxlength=50 v-model="userForm.nickName" placeholder="请输入用户名称"/>
       </FormItem>
-      <FormItem :label="$t('user.addRoleLabel')" prop="roles">
-        <Select v-model="userForm.roles" multiple :placeholder="$t('user.addRoleLabelHolder')">
+      <FormItem label="用户角色" prop="roles">
+        <Select v-model="userForm.roles" multiple placeholder="请选择用户角色">
           <Option v-for="item in roleDate" :value="item.roleId" :key="item.roleId">{{ item.roleName }}</Option>
         </Select>
       </FormItem>
-      <FormItem :label="$t('org.addParentOrgNameLabel')" prop="orgIds"
-                :placeholder="$t('org.addParentOrgNameLabelHolder')">
+      <FormItem label="所属组织" prop="orgIds" placeholder="请选择所属组织">
         <Cascader v-model="userForm.orgIds" :data="orgData" change-on-select filterable></Cascader>
       </FormItem>
-      <FormItem :label="$t('user.addPcaLabel')" prop="pca">
+      <FormItem label="联系地址" prop="pca">
         <al-cascader v-model="userForm.pca" level="2" @on-change="pcaChange"></al-cascader>
       </FormItem>
-      <FormItem :label="$t('user.addAddressLabel')" prop="address">
-        <Input type="textarea" :rows="4" :maxlength=100 v-model="userForm.address" :placeholder="$t('user.addAddressRuleMessage')"/>
+      <FormItem label="详细地址" prop="address">
+        <Input type="textarea" :rows="4" :maxlength=100 v-model="userForm.address" placeholder="请输入详细地址"/>
       </FormItem>
       <FormItem label="头像地址" prop="headImg">
         <Row>
@@ -76,7 +75,24 @@
           address: '',
           pca: []
         },
-        userFormRule: this.getUserFormRule(),
+        userFormRule: {
+          nickName: [
+            {required: true, message: '请输入用户名称', trigger: 'blur'},
+            {type: 'string', max: 50, message: '请输入不超过50的用户名称', trigger: 'blur'}
+          ],
+          pca: [
+            {required: true, message: '请选择联系地址', trigger: 'change', type: "array"}
+          ],
+          address:[
+            {required: true, message: '请输入详细地址', trigger: 'blur'}
+          ],
+          roles: [
+            {required: true, message: '请选择用户角色', trigger: 'change', type: "array"}
+          ],
+          orgIds: [
+            {required: true, message: '请选择用户所属组织', trigger: 'change', type: "array"}
+          ]
+        },
         orgData: [],
         roleDate: [],
         defaultList: []
@@ -118,7 +134,7 @@
               }
             })
           } else {
-            this.$Message.error(this.$t('user.updateUserFail'));
+            this.$Message.error('表单验证不通过');
           }
           setTimeout(() => {
             this.loading = false;
@@ -128,34 +144,8 @@
           }, 1000);
         });
       },
-      getUserFormRule() {
-        return {
-          nickName: [
-            {required: true, message: this.$t('user.addNickNameRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('user.addNickNameRuleMaxMessage'), trigger: 'blur'}
-          ],
-          pca: [
-            {required: true, message: this.$t('user.addPcaRuleMessage'), trigger: 'change', type: "array"}
-          ],
-          address:[
-            {required: true, message: this.$t('user.addAddressRuleMessage'), trigger: 'blur'}
-          ],
-          roles: [
-            {required: true, message: this.$t('user.addRolesRuleMessage'), trigger: 'change', type: "array"}
-          ],
-          orgIds: [
-            {required: true, message: this.$t('user.addOrgIdsRuleMessage'), trigger: 'change', type: "array"}
-          ]
-        }
-      },
       closeModal(val) {
         this.$emit('input', val);
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.userFormRule = _self.getUserFormRule()
-        }, 200)
       },
       pcaChange(data) {
         this.userForm.province = data[0].code
@@ -193,15 +183,16 @@
             if (res.code == 200) {
               res.obj.pca = [res.obj.province,res.obj.city,res.obj.area];
               this.userForm = res.obj;
-              this.defaultList = [
-                {
-                  name: this.userForm.headImg,
-                  url: this.$runConfig.runConfig.imgUrl + '/' + this.userForm.headImg,
-                  status: 'finished',
-                  percentage: 100
-                }
-              ];
-
+              if(this.userForm.headImg!=''){
+                this.defaultList = [
+                  {
+                    name: this.userForm.headImg,
+                    url: this.$runConfig.runConfig.imgUrl + '/' + this.userForm.headImg,
+                    status: 'finished',
+                    percentage: 100
+                  }
+                ];
+              }
             } else {
               this.$Message.error(res.msg);
             }
@@ -209,14 +200,6 @@
         } else {// 反之则关闭页面
           this.closeModal(val);
         }
-      },
-      userLang() {
-        this.lazy()
-      }
-    },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
       }
     }
   }

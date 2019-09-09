@@ -1,19 +1,13 @@
 <template>
   <div>
-    <Card :title="$t('user.title')">
+    <Card title="组织用户">
       <Row>
         <Col span="6">
           <Card style="min-height:300px;height: calc(100vh - 274px);">
             <ButtonGroup>
-              <Button v-show="addOrgButtonShow" type="success" @click="handleAdd" size="small">
-                {{$t('user.orgButton.addOrgButton')}}
-              </Button>
-              <Button v-show="updateOrgButtonShow" type="primary" @click="handleUpdate" size="small">
-                {{$t('user.orgButton.modifyOrgButton')}}
-              </Button>
-              <Button type="error" v-show="deleteOrgButtonShow" @click="handleDelete" size="small">
-                {{$t('user.orgButton.deleteOrgButton')}}
-              </Button>
+              <Button type="success" @click="handleAdd" size="small">增加</Button>
+              <Button type="primary" @click="handleUpdate" size="small">修改</Button>
+              <Button type="error" @click="handleDelete" size="small">删除</Button>
             </ButtonGroup>
             <Tree :data="orgDate" @on-select-change="onSelectChange"></Tree>
           </Card>
@@ -22,26 +16,20 @@
           <Card :title="parentOrgName">
             <div>
               <div style="display:inline-block;float:left;">
-                <Button type="success" v-show="addUserButtonShow" @click="handleUserAdd">+{{$t('user.createUser')}}
-                </Button>
+                <Button type="success" @click="handleUserAdd">+新增用户</Button>
               </div>
               <div style="display:inline-block;float:right;">
-                <Input v-model="search" suffix="ios-search" :placeholder="$t('user.searchText')" style="width: auto"
+                <Input v-model="search" suffix="ios-search" placeholder="请输入相应的查询信息" style="width: auto"
                        :search=true @on-search="handleSearch"/>
               </div>
             </div>
             <div style="clear: both;"></div>
             <div style="margin-top: 10px;">
-              <Table ref="userTable" @on-sort-change="onSortChange" :columns="columns" :data="userData"
-                     :height="tableHeight">
+              <Table ref="userTable" @on-sort-change="onSortChange" :columns="columns" :data="userData" :height="tableHeight">
                 <template slot-scope="{ row, index }" slot="action">
-                  <div>
-                    <Button type="success" v-show="updateUserButtonShow" @click="handleEditUser(row, index)"
-                            size="small">{{$t('button.edit')}}
-                    </Button>
-                    <Button type="error" v-show="deleteUserButtonShow" @click="handleDeleteUser(row)" size="small">
-                      {{$t('button.delete')}}
-                    </Button>
+                  <div >
+                    <Button type="success" @click="handleEditUser(row, index)" size="small">编辑</Button>
+                    <Button type="error" @click="handleDeleteUser(row)" size="small">删除</Button>
                   </div>
                 </template>
               </Table>
@@ -54,11 +42,11 @@
         </Col>
       </Row>
     </Card>
-    <addOrg v-model="addOrgShow" :parentOrgId="orgId" :parentOrgName="parentOrgName"
-            v-on:operateOrgAdd="operateOrgAdd"></addOrg>
-    <updateOrg v-model="updateOrgShow" :orgId="orgId" v-on:operateOrgUpdate="operateOrgUpdate">>
+    <addOrg v-model="addOrgShow" :parentOrgId="parentOrgId" :parentOrgName="parentOrgName"
+            v-on:reloadTree="initTree"></addOrg>
+    <updateOrg v-model="updateOrgShow" :orgId="parentOrgId" v-on:reloadTree="initTree">
     </updateOrg>
-    <addUser v-model="addUserShow" v-on:handleSearch="handleSearch"></addUser>
+    <addUser v-model="addUserShow"  v-on:handleSearch="handleSearch"></addUser>
     <updateUser v-model="updateUserShow" :userId="userId" v-on:handleSearch="handleSearch"></updateUser>
   </div>
 </template>
@@ -88,14 +76,48 @@
     },
     data() {
       return {
-        addOrgButtonShow: false,
-        updateOrgButtonShow: false,
-        deleteOrgButtonShow: false,
-        addUserButtonShow: false,
-        updateUserButtonShow: false,
-        deleteUserButtonShow: false,
         search: '',
-        columns: this.getUserColumns(),
+        columns: [
+          {
+            title: '用户账号',
+            key: 'loginAccount',
+            sortable: true
+          },
+          {
+            title: '真实名称',
+            key: 'nickName',
+            sortable: true
+          },
+          {
+            title: '创建时间',
+            key: 'crtDate',
+            sortable: true,
+            render: (h, params) => {
+              return h('div',
+                this.formatDate(new Date(params.row.crtDate), 'yyyy/MM/dd hh:mm:ss')
+              )
+            }
+          },
+          {
+            title: '最后登录时间',
+            key: 'lastLoginDate',
+            sortable: true,
+            render: (h, params) => {
+              if(params.row.lastLoginDate!=null){
+                return h('div',
+                  this.formatDate(new Date(params.row.lastLoginDate), 'yyyy/MM/dd hh:mm:ss')
+                )
+              }else{
+                return h('div', '')
+              }
+
+            }
+          },
+          {
+            title: '操作',
+            slot: 'action'
+          }
+        ],
         userData: [],
         key: '',
         order: '',
@@ -104,105 +126,23 @@
         pageSize: 10,
         orgDate: [],
         hasChildren: false,
-        parentOrgId: 1,
-        orgId: 0,
-        parentOrgName: this.getParentOrgName(),
+        parentOrgId: 0,
+        parentOrgName: '虚拟顶级组织',
         fullPath: '',
         editIndex: -1,
         addOrgShow: false,
         updateOrgShow: false,
         addUserShow: false,
         updateUserShow: false,
-        userId: '',
-        tableHeight: 200
+        userId:'',
+        tableHeight:200
       }
     },
     methods: {
-      operateOrgUpdate(obj, c) {
-        if (c == undefined) {
-          c = this.orgDate[0];
-        }
-        if (c.orgId == this.orgId) {
-          c.title = obj.orgName;
-          c.orgCode = obj.orgCode;
-        }
-        let childrenLength = c.children.length;
-        for (let i = 0; i < childrenLength; i++) {
-          c.children[i] = this.operateOrgUpdate(obj, c.children[i]);
-        }
-        return c;
-      },
-      operateOrgDelete(c) {
-        let _this = this;
-        let r = -1;
-        if (c.orgId == this.parentOrgId) {
-          for (let j = 0; j < c.children.length; j++) {
-            if (c.children[j].orgId == _this.orgId) {
-              r = j;
-            }
-          }
-          if (r != -1) {
-            c.children.splice(r, 1);
-          }
-        }
-        let childrenLength = c.children.length;
-        for (let i = 0; i < childrenLength; i++) {
-          if (c.children[i].children.length > 0) {
-            c.children[i] = this.operateOrgDelete(c.children[i]);
-          }
-          if (c.children[i].orgId == this.parentOrgId) {
-            for (let j = 0; j < c.children[i].children.length; j++) {
-              if (c.children[i].children[j].orgId == _this.orgId) {
-                r = j;
-              }
-            }
-            if (r != -1) {
-              c.children[i].children.splice(r, 1);
-            }
-          }
-        }
-        return c;
-      },
-      operateOrgAdd(obj, c) {
-        if (c == undefined) {
-          c = this.orgDate[0];
-          if (c.orgId == obj.parentOrgId) {
-            let o = new Object();
-            o.title = obj.orgName;
-            o.orgCode = obj.orgCode;
-            o.orgId = obj.orgId;
-            o.parentOrgId = obj.parentOrgId;
-            o.parentOrgName = obj.parentOrgName;
-            o.fullPath = obj.fullPath;
-            o.children = [];
-            o.expand = true;
-            c.children.push(o)
-          }
-        }
-        let childrenLength = c.children.length;
-        for (let i = 0; i < childrenLength; i++) {
-          if (c.children[i].children.length > 0) {
-            c.children[i] = this.operateOrgAdd(obj, c.children[i]);
-          }
-          if (c.children[i].orgId == obj.parentOrgId) {
-            let o = new Object();
-            o.title = obj.orgName;
-            o.orgCode = obj.orgCode;
-            o.orgId = obj.orgId;
-            o.parentOrgId = obj.parentOrgId;
-            o.parentOrgName = obj.parentOrgName;
-            o.fullPath = obj.fullPath;
-            o.children = [];
-            o.expand = true;
-            c.children[i].children.push(o)
-          }
-        }
-        return c;
-      },
       handleDeleteUser(row) {
         this.$Modal.confirm({
-          title: this.$t('modal.title'),
-          content: '<p>' + this.$t('user.deleteUserContent') + '</p>',
+          title: '删除用户',
+          content: '<p>是否删除当前用户</p>',
           onOk: () => {
             deleteUser({userId: row.userId}).then(res => {
               if (res.code == 200) {
@@ -214,7 +154,7 @@
             });
           },
           onCancel: () => {
-            this.$Message.info(this.$t('user.deleteCancel'));
+            this.$Message.info('取消删除请求');
           }
         });
       },
@@ -239,11 +179,11 @@
           fullPath
         }).then(res => {
           if (res.code == 200) {
-            this.$Message.success(this.$t('user.searchSuccessText'))
+            this.$Message.success(res.msg)
             _this.total = res.obj.total
             _this.userData = res.obj.rows
           } else {
-            this.$Message.error(this.$t('user.searchFailText') + ',' + res.msg)
+            this.$Message.error( res.msg)
           }
         })
       },
@@ -266,23 +206,23 @@
           return;
         }
         this.$Modal.confirm({
-          title: this.$t('modal.title'),
-          content: '<p>' + this.$t('org.deleteOrgContent') + '</p>',
+          title: '删除组织',
+          content: '<p>是否删除当前选中的组织</p>',
           onOk: () => {
-            deleteOrg({orgId: this.orgId}).then(res => {
+            deleteOrg({orgId: this.parentOrgId}).then(res => {
               if (res.code == 200) {
                 this.$Message.success(res.msg);
-                // 删除数据成功动态才做菜单树
-                this.operateOrgDelete(this.orgDate[0]);
                 this.parentOrgId = 0;
                 this.parentOrgName = '虚拟顶级组织';
+                // 删除数据成功同时刷新grid
+                this.initTree();
               } else {
                 this.$Message.warning(res.msg);
               }
             });
           },
           onCancel: () => {
-            this.$Message.info(this.$t('org.deleteCancel'));
+            this.$Message.info('取消了删除请求');
           }
         });
       },
@@ -299,14 +239,12 @@
       onSelectChange(data) {
         // 如果长度为0说明当前没有任何节点被选中
         if (data.length == 0) {
-          this.parentOrgId = 1;
-          this.orgId = 0;
+          this.parentOrgId = 0;
           this.parentOrgName = '虚拟顶级组织';
           this.hasChildren = false;
           this.fullPath = '';
         } else {
-          this.parentOrgId = data[0].parentOrgId;
-          this.orgId = data[0].orgId;
+          this.parentOrgId = data[0].orgId;
           this.parentOrgName = data[0].title;
           this.fullPath = data[0].fullPath;
           if (data[0].children.length == 0) {
@@ -315,7 +253,6 @@
             this.hasChildren = true;
           }
         }
-        this.handleSearch();
       },
       onSortChange(sort) {
         if (sort.order == 'normal') {
@@ -333,86 +270,15 @@
       changePageSize(pageSize) {// 改变每页记录的条数
         this.pageSize = pageSize;
         this.handleSearch();
-      },
-      getUserColumns() {
-        return [
-          {
-            title: this.$t('user.columns.loginAccountTitle'),
-            key: 'loginAccount',
-            sortable: true
-          },
-          {
-            title: this.$t('user.columns.nickNameTitle'),
-            key: 'nickName',
-            sortable: true
-          },
-          {
-            title: this.$t('user.columns.crtDateTitle'),
-            key: 'crtDate',
-            sortable: true,
-            render: (h, params) => {
-              return h('div',
-                this.formatDate(new Date(params.row.crtDate), 'yyyy/MM/dd hh:mm:ss')
-              )
-            }
-          },
-          {
-            title: this.$t('user.columns.lastLoginDateTitle'),
-            key: 'lastLoginDate',
-            sortable: true,
-            render: (h, params) => {
-              if (params.row.lastLoginDate != null) {
-                return h('div',
-                  this.formatDate(new Date(params.row.lastLoginDate), 'yyyy/MM/dd hh:mm:ss')
-                )
-              } else {
-                return h('div', '')
-              }
-
-            }
-          },
-          {
-            title: this.$t('user.columns.operationTitle'),
-            slot: 'action'
-          }
-        ]
-      },
-      getParentOrgName() {
-        return this.$t('user.parentOrgName')
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.columns = _self.getUserColumns()
-          _self.parentOrgName = _self.getParentOrgName()
-        }, 200)
-      },
-      loadButtonAuth() { // 加载菜单按钮权限
-        this.addOrgButtonShow = this.$checkButoonAuth('system-manage-org-add');
-        this.updateOrgButtonShow = this.$checkButoonAuth('system-manage-org-update');
-        this.deleteOrgButtonShow = this.$checkButoonAuth('system-manage-org-delete');
-        this.addUserButtonShow = this.$checkButoonAuth('system-manage-user-add');
-        this.updateUserButtonShow = this.$checkButoonAuth('system-manage-user-update');
-        this.deleteUserButtonShow = this.$checkButoonAuth('system-manage-user-delete');
       }
     },
     mounted() {
-      // 初始化菜单权限
-      this.loadButtonAuth();
       // 初始化完成以后加载菜单数据
       this.initTree();
       this.handleSearch();
       this.tableHeight = window.innerHeight - this.$refs.userTable.$el.offsetTop - 335
     },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
-      }
-    },
     watch: {
-      userLang() {
-        this.lazy()
-      },
       parentOrgId() {
         this.handleSearch();
       }

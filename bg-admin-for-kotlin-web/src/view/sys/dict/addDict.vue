@@ -1,22 +1,23 @@
 <template>
-  <Modal v-model="show" :title="$t('dict.addTitle')" @on-ok="ok" :loading="loading" :mask-closable="false">
+  <Modal v-model="show" title="新增字典" @on-ok="ok" :loading="loading" :mask-closable="false">
     <Form ref="dictForm" :model="dictForm" :rules="dictFormRule">
-      <FormItem :label="$t('dict.addDictTypeLabel')" prop="dictType">
-        <Input type="text" :maxlength=50 v-model="dictForm.dictType" :placeholder="$t('dict.addDictTypeHolder')"/>
+      <FormItem label="字典类型" prop="dictType">
+        <Input type="text" :maxlength=50 v-model="dictForm.dictType" placeholder="请输入字典类型"/>
       </FormItem>
-      <FormItem :label="$t('dict.addDictCodeLabel')" prop="dictCode">
-        <Input type="text" :maxlength=50 v-model="dictForm.dictCode" :placeholder="$t('dict.addDictCodeHolder')"/>
+      <FormItem label="字典编码" prop="dictCode">
+        <Input type="text" :maxlength=50 v-model="dictForm.dictCode" placeholder="请输入字典编码"/>
       </FormItem>
-      <FormItem :label="$t('dict.addDictTextLabel')" prop="dictText">
-        <Input type="text" :maxlength=50 v-model="dictForm.dictText" :placeholder="$t('dict.addDictTextHolder')"/>
+      <FormItem label="字典文本" prop="dictText">
+        <Input type="text" :maxlength=50 v-model="dictForm.dictText" placeholder="请输入字典文本"/>
       </FormItem>
-      <FormItem :label="$t('dict.addDictValueLabel')" prop="dictValue">
-        <Input type="text" :maxlength=50 v-model="dictForm.dictValue" :placeholder="$t('dict.addDictValueHolder')"/>
+      <FormItem label="字典数值" prop="dictValue">
+        <Input type="text" :maxlength=50 v-model="dictForm.dictValue" placeholder="请输入字典数值"/>
       </FormItem>
     </Form>
   </Modal>
 </template>
 <script>
+
   import {addDict, checkTypeAndCode} from '../../../api/sys/dict/dict.api'
 
   export default {
@@ -37,10 +38,57 @@
           dictText: '',
           dictValue: ''
         },
-        dictFormRule: this.getDictFormRule()
+        dictFormRule: {
+          dictType: [
+            {required: true, message: '字典类型不能为空', trigger: 'blur'},
+            {type: 'string', max: 50, message: '字典类型不能大于50个字符', trigger: 'blur'}
+          ],
+          dictCode: [
+            {required: true, message: '字典编码不能为空', trigger: 'blur'},
+            {type: 'string', max: 50, message: '字典编码不能大于50个字符', trigger: 'blur'},
+            {
+              validator: this.check({
+                response: 'exist'
+              }), trigger: 'blur'
+            }
+          ],
+          dictText: [
+            {required: true, message: '字典文本不能为空', trigger: 'blur'},
+            {type: 'string', max: 50, message: '字典文本不能大于50个字符', trigger: 'blur'}
+          ],
+          dictValue: [
+            {required: true, message: '字典数值不能为空', trigger: 'blur'},
+            {type: 'string', max: 50, message: '字典数值不能大于50个字符', trigger: 'blur'}
+          ]
+        }
       }
     },
     methods: {
+      ok() {
+        this.$refs['dictForm'].validate((valid) => {
+          if (valid) {
+            addDict(this.dictForm).then(res => {
+              if (res.code == 200) {
+                this.$Message.success(res.msg);
+                // 提交表单数据成功则关闭当前的modal框
+                this.closeModal(false);
+                // 同时调用父页面的刷新页面的方法
+                this.$emit('handleSearch');
+              } else {
+                this.$Message.error( res.msg);
+              }
+            })
+          } else {
+            this.$Message.error('新增数据字典失败');
+          }
+          setTimeout(() => {
+            this.loading = false;
+            this.$nextTick(() => {
+              this.loading = true;
+            });
+          }, 1000);
+        });
+      },
       check() {
         let _this = this;
         return function (rule, value, callback) {
@@ -55,64 +103,8 @@
           });
         };
       },
-      ok() {
-        this.$refs['dictForm'].validate((valid) => {
-          if (valid) {
-            addDict(this.dictForm).then(res => {
-              if (res.code == 200) {
-                this.$Message.success(this.$t('dict.addSuccess'));
-                // 提交表单数据成功则关闭当前的modal框
-                this.closeModal(false);
-                // 同时调用父页面的刷新页面的方法
-                this.$emit('handleSearch');
-              } else {
-                this.$Message.error(this.$t('dict.addDictFail')+res.msg);
-              }
-            })
-          } else {
-            this.$Message.error(this.$t('dict.addFormFail'));
-          }
-          setTimeout(() => {
-            this.loading = false;
-            this.$nextTick(() => {
-              this.loading = true;
-            });
-          }, 1000);
-        });
-      },
       closeModal(val) {
         this.$emit('input', val);
-      },
-      getDictFormRule() {
-        return {
-          dictType: [
-            {required: true, message: this.$t('dict.addDictTypeRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('dict.addDictTypeRuleMaxMessage'), trigger: 'blur'}
-          ],
-          dictCode: [
-            {required: true, message: this.$t('dict.addDictCodeRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('dict.addDictCodeRuleMaxMessage'), trigger: 'blur'},
-            {
-              validator: this.check({
-                response: 'exist'
-              }), trigger: 'blur'
-            }
-          ],
-          dictText: [
-            {required: true, message: this.$t('dict.addDictTextRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('dict.addDictTextRuleMaxMessage'), trigger: 'blur'}
-          ],
-          dictValue: [
-            {required: true, message: this.$t('dict.addDictValueRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('dict.addDictValueRuleMaxMessage'), trigger: 'blur'}
-          ]
-        }
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.dictFormRule = _self.getDictFormRule()
-        }, 200)
       }
     },
     watch: {
@@ -120,20 +112,11 @@
         this.show = val;
       },
       show(val) {
-        //当重新显示增加数据的时候重置整个form表单
         if (val) {
           this.$refs['dictForm'].resetFields();
         } else {// 反之则关闭页面
           this.closeModal(val);
         }
-      },
-      userLang(){
-        this.lazy()
-      }
-    },
-    computed:{
-      userLang() {
-        return this.$store.getters.userLang;
       }
     }
   }

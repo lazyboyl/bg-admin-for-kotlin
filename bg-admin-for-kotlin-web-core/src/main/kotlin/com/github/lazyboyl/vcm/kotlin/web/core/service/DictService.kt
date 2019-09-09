@@ -142,7 +142,7 @@ class DictService {
      * @return 返回查询结果
      */
     fun queryDictList(search: String?, dictCode: String?, pageSize: Int, current: Int, orderKey: String?, orderByValue: String?): ReturnInfo {
-        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (orderKey != null) if (orderByValue != null) "$orderKey $orderByValue" else orderKey else "")
+        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (!orderKey.isNullOrEmpty()) if (!orderByValue.isNullOrEmpty()) "$orderKey $orderByValue" else orderKey else "")
         val res = PageUtil.getResult(dictDao.queryDictList(search = search, dictCodeArray = dictCode?.split(" ")))
         return ReturnInfo(SystemStaticConst.SUCCESS, "获取数据字典列表数据成功！", Page(pageSize = pageSize, current = current, total = res["total"] as Long, rows = res["rows"] as List<*>))
     }

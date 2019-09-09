@@ -1,19 +1,13 @@
 <template>
   <div>
-    <Card :title="$t('tree.title')">
+    <Card title="菜单管理">
       <Row>
         <Col span="6">
-          <Card style="min-height: calc(100vh - 274px);">
+          <Card style="min-height:300px;height: calc(100vh - 274px);">
             <ButtonGroup>
-              <Button type="success" v-show="addTreeButtonShow" @click="handleAdd" size="small">
-                {{$t('tree.treeButton.addTreeButton')}}
-              </Button>
-              <Button type="primary" v-show="updateTreeButtonShow" @click="handleUpdate" size="small">
-                {{$t('tree.treeButton.modifyTreeButton')}}
-              </Button>
-              <Button type="error" v-show="deleteTreeButtonShow" @click="handleDelete" size="small">
-                {{$t('tree.treeButton.deleteTreeButton')}}
-              </Button>
+              <Button type="success" @click="handleAdd" size="small">增加</Button>
+              <Button type="primary" @click="handleUpdate" size="small">修改</Button>
+              <Button type="error" @click="handleDelete" size="small">删除</Button>
             </ButtonGroup>
             <Tree :data="roleTreeDate" @on-select-change="onSelectChange"></Tree>
           </Card>
@@ -22,10 +16,10 @@
           <Card :title="parentTreeName">
             <div>
               <div style="display:inline-block;float:left;">
-                <Button type="success" v-show="addButtonButtonShow" @click="handleTreeButton">+{{$t('tree.createButton')}}</Button>
+                <Button type="success" @click="handleTreeButton">+创建按钮</Button>
               </div>
               <div style="display:inline-block;float:right;">
-                <Input v-model="search" suffix="ios-search" :placeholder="$t('tree.searchText')" style="width: auto"
+                <Input v-model="search" suffix="ios-search" placeholder="请输入查询的条件" style="width: auto"
                        :search=true @on-search="handleSearch"/>
               </div>
             </div>
@@ -44,24 +38,24 @@
                 </template>
 
                 <template slot-scope="{ row, index }" slot="treeState">
-                  <span v-if="row.treeState=='1'">{{ $t('status.available') }}</span>
-                  <span v-else>{{ $t('status.disabled') }}</span>
+                  <span v-if="row.treeState=='1'">可用</span>
+                  <span v-else>禁用</span>
                 </template>
 
                 <template slot-scope="{ row, index }" slot="action">
                   <div v-if="editIndex === index">
-                    <Button size="small" type="success" @click="handleUpdateButton(index)">{{$t('button.save')}}
+                    <Button size="small" type="success" @click="handleUpdateButton(index)">更新
                     </Button>
-                    <Button size="small" type="error" @click="editIndex = -1">{{$t('button.cancel')}}</Button>
+                    <Button size="small" type="error" @click="editIndex = -1">取消</Button>
                   </div>
                   <div v-else>
-                    <Button type="success" v-show="updateButtonButtonShow"  @click="handleEditButton(row, index)" size="small">{{$t('button.edit')}}
+                    <Button type="success" @click="handleEditButton(row, index)" size="small">编辑
                     </Button>
-                    <Button type="error" v-show="deleteButtonButtonShow" @click="handleDeleteButton(row)" size="small">{{$t('button.delete')}}</Button>
-                    <Button type="primary" v-show="freezeAndThawButtonShow" v-if="row.treeState=='1'" @click="handleOperate(row,'2')" size="small">
-                      {{$t('actions.freeze')}}
+                    <Button type="error" @click="handleDeleteButton(row)" size="small">删除</Button>
+                    <Button type="primary" v-if="row.treeState=='1'" @click="handleOperate(row,'2')" size="small">
+                      冻结
                     </Button>
-                    <Button type="info" v-show="freezeAndThawButtonShow" v-else @click="handleOperate(row,'1')" size="small">{{$t('actions.thaw')}}
+                    <Button type="info" v-else @click="handleOperate(row,'1')" size="small">解冻
                     </Button>
                   </div>
                 </template>
@@ -97,6 +91,7 @@
   import updateTree from './updateTree'
 
   export default {
+    name: 'treeList',
     components: {
       addButton,
       updateButton,
@@ -105,28 +100,44 @@
     },
     data() {
       return {
-        addTreeButtonShow: false,
-        updateTreeButtonShow: false,
-        deleteTreeButtonShow: false,
-        addButtonButtonShow: false,
-        updateButtonButtonShow: false,
-        deleteButtonButtonShow: false,
-        freezeAndThawButtonShow: false,
         addButtonShow: false,
         updateButtonShow: false,
         addTreeShow: false,
         updateTreeShow: false,
         roleTreeDate: [],
-        parentTreeName: this.getParentTreeName(),
-        parentTreeId: 0,
         hasChildren: false,
+        parentTreeName: '顶层节点',
+        parentTreeId: 0,
         search: '',
         key: '',
         order: '',
         total: 0,
         current: 1,
         pageSize: 10,
-        columns: this.getTreeButtonColumns(),
+        columns: [
+          {
+            title: '按钮名称',
+            slot: 'treeName',
+            key: 'treeName',
+            sortable: true
+          }, {
+
+            title: '按钮编码',
+            slot: 'treeCode',
+            key: 'treeCode',
+            sortable: true
+          },
+          {
+            title: '按钮状态',
+            key: 'treeState',
+            slot: 'treeState',
+            sortable: true
+          },
+          {
+            title: '操作',
+            slot: 'action'
+          }
+        ],
         treeButtonData: [],
         editTreeName: '',
         editTreeCode: '',
@@ -136,47 +147,51 @@
       }
     },
     methods: {
+      handleTreeButton() {
+        this.addButtonShow = true
+      },
       handleOperate(row, treeState) {
-        let content = this.$t('tree.freezeContent')
+        let content = '是否冻结当前按钮'
         if (treeState == '1') {
-          content = this.$t('tree.thawContent')
+          content = '是否解冻当前按钮'
         }
+
         this.$Modal.confirm({
           title: this.$t('modal.title'),
           content: '<p>' + content + '</p>',
           onOk: () => {
             operateButton({treeId: row.treeId, treeState: treeState}).then(res => {
               if (res.code == 200) {
-                this.$Message.success(this.$t('tree.operateButtonSuccess'));
+                this.$Message.success(res.msg);
                 // 冻结用户成功同时刷新grid
                 this.handleSearch();
               } else {
-                this.$Message.warning(this.$t('tree.operateButtonFail'));
+                this.$Message.warning(res.msg);
               }
             });
           },
           onCancel: () => {
-            this.$Message.info(this.$t('dict.deleteCancel'));
+            this.$Message.info('取消');
           }
         });
       },
       handleDeleteButton(row) {
         this.$Modal.confirm({
-          title: this.$t('modal.title'),
-          content: '<p>' + this.$t('tree.deleteContent') + '</p>',
+          title: '删除按钮',
+          content: '<p>是否删除当前按钮节点</p>',
           onOk: () => {
             deleteButton({treeId: row.treeId}).then(res => {
               if (res.code == 200) {
-                this.$Message.success(this.$t('tree.deleteButtonSuccess'));
+                this.$Message.success(res.msg);
                 // 删除数据成功同时刷新grid
                 this.handleSearch();
               } else {
-                this.$Message.warning(this.$t('tree.deleteButtonFail'));
+                this.$Message.warning(res.msg);
               }
             });
           },
           onCancel: () => {
-            this.$Message.info(this.$t('dict.deleteCancel'));
+            this.$Message.info('取消删除');
           }
         });
       },
@@ -199,51 +214,21 @@
           }
         });
       },
-      handleTreeButton() {
-        this.addButtonShow = true
-      },
-      handleAdd() {
-        this.addTreeShow = true
-      },
-      handleUpdate() {
-        if (this.parentTreeId == 0) {
-          this.$Message.warning('请选择需要修改的菜单节点');
-          return;
-        }
-        this.updateTreeShow = true
-      },
-      handleDelete() {
-        if (this.parentTreeId == 0) {
-          this.$Message.warning('请选择需要删除的菜单节点');
-          return;
-        }
-        this.$Modal.confirm({
-          title: this.$t('modal.title'),
-          content: '<p>' + this.$t('tree.deleteTreeContent') + '</p>',
-          onOk: () => {
-            deleteTree({treeId: this.parentTreeId}).then(res => {
-              if (res.code == 200) {
-                this.$Message.success(res.msg);
-                this.parentTreeId = 0;
-                this.parentTreeName = '顶层节点';
-                // 删除数据成功同时刷新grid
-                this.initTree();
-              } else {
-                this.$Message.warning(res.msg);
-              }
-            });
-          },
-          onCancel: () => {
-            this.$Message.info(this.$t('dict.deleteCancel'));
-          }
-        });
-      },
       changePage(current) {
         this.current = current;
         this.handleSearch();
       },
       changePageSize(pageSize) {// 改变每页记录的条数
         this.pageSize = pageSize;
+        this.handleSearch();
+      },
+      onSortChange(sort) {
+        if (sort.order == 'normal') {
+          this.order = '';
+        } else {
+          this.key = sort.key;
+          this.order = sort.order;
+        }
         this.handleSearch();
       },
       handleSearch() {
@@ -263,13 +248,49 @@
           orderByValue
         }).then(res => {
           if (res.code == 200) {
-            this.$Message.success(this.$t('tree.searchSuccessText'))
+            this.$Message.success('查询成功')
             _this.total = res.obj.total
             _this.treeButtonData = res.obj.rows
           } else {
-            this.$Message.error(this.$t('tree.searchFailText') + ',' + res.msg)
+            this.$Message.error(res.msg)
           }
         })
+      },
+      handleAdd() {
+        this.addTreeShow = true;
+      },
+      handleUpdate() {
+        if (this.parentTreeId == 0) {
+          this.$Message.warning('请选择需要修改的菜单节点');
+          return;
+        }
+        this.updateTreeShow = true
+      },
+      handleDelete() {
+        if (this.parentTreeId == 0) {
+          this.$Message.warning('请选择需要删除的菜单节点');
+          return;
+        }
+        this.$Modal.confirm({
+          title: '删除菜单',
+          content: '<p>是否删除当前的菜单节点</p>',
+          onOk: () => {
+            deleteTree({treeId: this.parentTreeId}).then(res => {
+              if (res.code == 200) {
+                this.$Message.success(res.msg);
+                this.parentTreeId = 0;
+                this.parentTreeName = '顶层节点';
+                // 删除数据成功同时刷新grid
+                this.initTree();
+              } else {
+                this.$Message.warning(res.msg);
+              }
+            });
+          },
+          onCancel: () => {
+            this.$Message.info('取消了删除');
+          }
+        });
       },
       onSelectChange(data) {
         // 如果长度为0说明当前没有任何节点被选中
@@ -287,15 +308,6 @@
           }
         }
       },
-      onSortChange(sort) {
-        if (sort.order == 'normal') {
-          this.order = '';
-        } else {
-          this.key = sort.key;
-          this.order = sort.order;
-        }
-        this.handleSearch();
-      },
       initTree() {
         const _this = this;
         getTreeList({}).then(res => {
@@ -304,71 +316,15 @@
           } else {
             this.$Message.error("加载菜单节点失败，请与管理员联系！")
           }
-
         });
-      },
-      getParentTreeName() {
-        return this.$t('tree.parentTreeName')
-      },
-      getTreeButtonColumns() {
-        return [
-          {
-            title: this.$t('tree.columns.treeNameTitle'),
-            slot: 'treeName',
-            key: 'treeName',
-            sortable: true
-          }, {
-
-            title: this.$t('tree.columns.treeCodeTitle'),
-            slot: 'treeCode',
-            key: 'treeCode',
-            sortable: true
-          },
-          {
-            title: this.$t('tree.columns.treeStateTitle'),
-            key: 'treeState',
-            slot: 'treeState',
-            sortable: true
-          },
-          {
-            title: this.$t('tree.columns.operationTitle'),
-            slot: 'action'
-          }
-        ]
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.columns = _self.getTreeButtonColumns()
-          _self.parentTreeName = _self.getParentTreeName();
-        }, 200)
-      },
-      loadButtonAuth() { // 加载菜单按钮权限
-        this.addTreeButtonShow = this.$checkButoonAuth('system-manage-tree-add');
-        this.updateTreeButtonShow = this.$checkButoonAuth('system-manage-tree-update');
-        this.deleteTreeButtonShow = this.$checkButoonAuth('system-manage-tree-delete');
-        this.addButtonButtonShow = this.$checkButoonAuth('system-manage-button-add');
-        this.updateButtonButtonShow = this.$checkButoonAuth('system-manage-button-update');
-        this.deleteButtonButtonShow = this.$checkButoonAuth('system-manage-button-delete');
-        this.freezeAndThawButtonShow = this.$checkButoonAuth('system-manage-button-operate');
       }
     },
     mounted() {
-      // 初始化菜单权限
-      this.loadButtonAuth();
       // 初始化完成以后加载菜单数据
       this.initTree();
       this.tableHeight = window.innerHeight - this.$refs.treeButtonTable.$el.offsetTop - 335
     },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
-      }
-    },
     watch: {
-      userLang() {
-        this.lazy()
-      },
       parentTreeId() {
         this.handleSearch();
       }

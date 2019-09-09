@@ -1,18 +1,18 @@
 <template>
-  <Modal v-model="show" :title="$t('tree.addButtonTitle')" @on-ok="ok" :loading="loading" :mask-closable="false">
+  <Modal v-model="show" title="新增按钮" @on-ok="ok" :loading="loading" :mask-closable="false">
     <Form ref="buttonForm" :model="buttonForm" :rules="buttonFormRule">
-      <FormItem :label="$t('tree.addParentTreeNameLabel')">
+      <FormItem label="父菜单节点">
         <Input type="text" v-model="buttonForm.parentTreeName" disabled/>
       </FormItem>
-      <FormItem :label="$t('tree.addButtonNameLabel')" prop="treeName">
-        <Input type="text" :maxlength=50 v-model="buttonForm.treeName" :placeholder="$t('tree.addButtonNameHolder')"/>
+      <FormItem label="按钮名称" prop="treeName">
+        <Input type="text" :maxlength=50 v-model="buttonForm.treeName" placeholder="请输入按钮名称"/>
       </FormItem>
-      <FormItem :label="$t('tree.addButtonCodeLabel')" prop="treeCode">
-        <Input type="text" :maxlength=50 v-model="buttonForm.treeCode" :placeholder="$t('tree.addButtonCodeHolder')"/>
+      <FormItem label="按钮编码" prop="treeCode">
+        <Input type="text" :maxlength=50 v-model="buttonForm.treeCode" placeholder="请输入按钮编码"/>
       </FormItem>
-      <FormItem :label="$t('tree.addButtonPowerPathLabel')">
+      <FormItem label="按钮权限">
         <Input type="textarea" :rows="4" :maxlength=1000 v-model="buttonForm.powerPath"
-               :placeholder="$t('tree.addPowerPathHolder')"/>
+               placeholder="请输入按钮权限"/>
       </FormItem>
     </Form>
   </Modal>
@@ -55,17 +55,17 @@
           if (valid) {
             addButton(this.buttonForm).then(res => {
               if (res.code == 200) {
-                this.$Message.success(this.$t('tree.addButtonSuccess'));
+                this.$Message.success(res.msg);
                 // 提交表单数据成功则关闭当前的modal框
                 this.closeModal(false);
                 // 同时调用父页面的刷新页面的方法
                 this.$emit('handleSearch');
               } else {
-                this.$Message.error(this.$t('tree.addButtonFail') + res.msg);
+                this.$Message.error( res.msg);
               }
             })
           } else {
-            this.$Message.error(this.$t('tree.addButtonFail'));
+            this.$Message.error('表单验证不通过');
           }
           setTimeout(() => {
             this.loading = false;
@@ -83,7 +83,7 @@
             if (res.obj.success == 'pass') {
               callback();
             } else {
-              callback(new Error(_this.$t('tree.checkFail')));
+              callback(new Error('按钮编码已经存在'));
             }
           });
         };
@@ -91,12 +91,12 @@
       getButtonFormRule() {
         return {
           treeName: [
-            {required: true, message: this.$t('tree.addButtonNameRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('tree.addButtonNameRuleMaxMessage'), trigger: 'blur'}
+            {required: true, message: '请输入按钮名称', trigger: 'blur'},
+            {type: 'string', max: 50, message: '按钮名称长度不能大于50', trigger: 'blur'}
           ],
           treeCode: [
-            {required: true, message: this.$t('tree.addButtonCodeRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('tree.addButtonCodeRuleMaxMessage'), trigger: 'blur'},
+            {required: true, message: '请输入按钮编码', trigger: 'blur'},
+            {type: 'string', max: 50, message: '按钮编码长度不能大于50', trigger: 'blur'},
             {
               validator: this.checkButtonCode({
                 response: 'exist'
@@ -104,12 +104,6 @@
             }
           ]
         }
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.buttonFormRule = _self.getButtonFormRule()
-        }, 200)
       },
       closeModal(val) {
         this.$emit('input', val);
@@ -129,14 +123,6 @@
         } else {// 反之则关闭页面
           this.closeModal(val);
         }
-      },
-      userLang() {
-        this.lazy()
-      }
-    },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
       }
     }
   }

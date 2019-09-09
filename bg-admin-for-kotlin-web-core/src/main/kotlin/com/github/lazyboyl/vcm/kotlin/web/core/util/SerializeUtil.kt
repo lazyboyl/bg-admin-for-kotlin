@@ -43,6 +43,7 @@ class SerializeUtil {
                 val ois = ObjectInputStream(bais)
                 return ois.readObject()
             } catch (e: Exception) {
+                println(e.message)
                 throw RuntimeException(e.message, e)
             }
 

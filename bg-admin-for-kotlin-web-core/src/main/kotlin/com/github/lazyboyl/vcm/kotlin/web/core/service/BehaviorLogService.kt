@@ -36,7 +36,7 @@ class BehaviorLogService {
      * @return 返回查询结果
      */
     fun queryBehaviorLogList(search: String, pageSize: Int, current: Int, orderKey: String?, orderByValue: String?): ReturnInfo {
-        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (orderKey != null) if (orderByValue != null) "$orderKey $orderByValue" else orderKey else "")
+        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (!orderKey.isNullOrEmpty()) if (!orderByValue.isNullOrEmpty()) "$orderKey $orderByValue" else orderKey else "")
         val res = PageUtil.getResult(behaviorLogDao.queryBehaviorLogList(search))
         return ReturnInfo(SystemStaticConst.SUCCESS, "获取日志列表数据成功！", Page(pageSize, current, res.get("total") as Long, res.get("rows") as List<*>))
     }

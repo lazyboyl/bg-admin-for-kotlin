@@ -36,7 +36,7 @@ interface RoleDao : Mapper<Role> {
      * @param roleCode 角色编码
      * @return 返回验证结果
      */
-    fun checkRoleCodeAndName(@Param("roleId") roleId: String, @Param("roleName") roleName: String, @Param("roleCode") roleCode: String): Int
+    fun checkRoleCodeAndName(@Param("roleId") roleId: String?, @Param("roleName") roleName: String?, @Param("roleCode") roleCode: String?): Int
 
     /**
      * 功能描述：获取角色列表数据

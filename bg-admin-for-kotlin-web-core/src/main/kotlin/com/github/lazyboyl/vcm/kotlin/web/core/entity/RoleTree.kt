@@ -12,7 +12,7 @@ import javax.persistence.Table
  * @since 2019-09-04
  */
 @Table(name = "t_role_tree")
-class RoleTree(roleTreeId: String, treeId: Int) {
+class RoleTree(roleId: String, treeId: Int) {
 
     /**
      * 角色菜单关联流水ID
@@ -20,7 +20,7 @@ class RoleTree(roleTreeId: String, treeId: Int) {
     @Id
     @Column(name = "roleTreeId")
     @KeySql(genId = UuidGenId::class)
-    var roleTreeId: String? = roleTreeId
+    var roleTreeId: String? = null
 
     /**
      * 菜单ID
@@ -32,6 +32,6 @@ class RoleTree(roleTreeId: String, treeId: Int) {
      * 角色ID
      */
     @Column(name = "roleId")
-    var roleId: String? = null
+    var roleId: String? = roleId
 
 }

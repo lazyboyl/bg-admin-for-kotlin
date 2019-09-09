@@ -26,8 +26,10 @@ class RedisCache {
             if (it.exists(keyBytes!!)!!) {
                 val valueBytes = it.get(keyBytes)
                 SerializeUtil.unserialize(valueBytes!!) as T
+            }else{
+                null
             }
-            null
+
         }
     }
 

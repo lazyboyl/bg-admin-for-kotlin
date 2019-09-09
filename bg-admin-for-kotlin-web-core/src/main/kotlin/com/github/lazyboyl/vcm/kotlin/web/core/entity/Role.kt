@@ -9,7 +9,7 @@ import javax.persistence.Table
 import javax.persistence.Transient
 
 @Table(name = "t_role")
-class Role(roleId: String) {
+class Role {
 
     /**
      * 角色流水ID
@@ -17,7 +17,7 @@ class Role(roleId: String) {
     @Id
     @Column(name = "roleId")
     @KeySql(genId = UuidGenId::class)
-    var roleId: String? = roleId
+    var roleId: String? = null
 
     /**
      * 角色名字

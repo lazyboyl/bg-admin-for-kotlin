@@ -16,6 +16,7 @@ import com.github.pagehelper.PageHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tk.mybatis.mapper.entity.Example
 import java.util.*
 
 @Service
@@ -51,9 +52,9 @@ class RoleService {
      * @return 返回加载结果
      */
     fun loadTree(): ReturnInfo {
-        val tree = Tree()
-        tree.treeState = TreeStaticConstant.TREE_STATE_NORMAL
-        return ReturnInfo(SystemStaticConst.SUCCESS, "加载菜单数据成功", TreeInstall.installTree(treeMapper.treesToTreeDTO(treeDao.select(tree))))
+        val tree = Example(Tree::class.java)
+        tree.createCriteria().andEqualTo("treeState",TreeStaticConstant.TREE_STATE_NORMAL)
+        return ReturnInfo(SystemStaticConst.SUCCESS, "加载菜单数据成功", TreeInstall.installTree(treeMapper.treesToTreeDTO(treeDao.selectByExample(tree))))
     }
 
     /**
@@ -97,8 +98,10 @@ class RoleService {
                 if (roleTrees != null) {
                     // 删除关联表的数据
                     roleTreeDao.deleteRoleTreeByRoleId(roleId)
+                    var role = Role()
+                    role.roleId = roleId
                     // 重新插入新的关联数据
-                    saveRoleAssociateTree(JsonUtils.jsonToList(roleTrees, TreeDto::class.java), Role(roleId))
+                    saveRoleAssociateTree(JsonUtils.jsonToList(roleTrees, TreeDto::class.java), role)
                 }
                 return ReturnInfo(SystemStaticConst.SUCCESS, "更新角色数据成功")
             }
@@ -167,7 +170,7 @@ class RoleService {
      * @param roleCode 角色编码
      * @return 返回处理结果
      */
-    fun checkRoleCodeAndName(roleId: String, roleName: String, roleCode: String): ReturnInfo {
+    fun checkRoleCodeAndName(roleId: String?, roleName: String?, roleCode: String?): ReturnInfo {
         val result = HashMap<String, Any>(1)
         try {
             // 查询的结果大于0表示数据库已经存在该数据了，反之则不存在
@@ -193,7 +196,7 @@ class RoleService {
      * @return 返回查询结果
      */
     fun queryRoleList(search: String, pageSize: Int, current: Int, orderKey: String?, orderByValue: String?): ReturnInfo {
-        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (orderKey != null) if (orderByValue != null) "$orderKey $orderByValue" else orderKey else "")
+        PageHelper.startPage<Any>(current, if (pageSize in 0..500) pageSize else 20, if (!orderKey.isNullOrEmpty()) if (!orderByValue.isNullOrEmpty()) "$orderKey $orderByValue" else orderKey else "")
         val res = PageUtil.getResult(roleDao.queryRoleList(search))
         return ReturnInfo(SystemStaticConst.SUCCESS, "获取角色列表数据成功！", Page(pageSize, current, res["total"] as Long, res["rows"] as List<*>))
     }

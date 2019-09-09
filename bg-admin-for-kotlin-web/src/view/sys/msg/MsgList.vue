@@ -3,7 +3,7 @@
     <Card title="消息管理">
       <div>
         <div style="display:inline-block;float:left;">
-          <Button type="success" v-show="publishButtonShow" @click="handleAdd">+发布消息</Button>
+          <Button type="success" @click="handleAdd">+发布消息</Button>
         </div>
         <div style="display:inline-block;float:right;">
           <Input v-model="search" suffix="ios-search" placeholder="请输入相应的查询信息" style="width: auto"
@@ -36,7 +36,6 @@
     },
     data() {
       return {
-        publishButtonShow: false,
         search: '',
         addShow: false,
         msgData: [],
@@ -132,14 +131,9 @@
             this.$Message.error('数据查询失败，失败原因：' + res.msg)
           }
         });
-      },
-      loadButtonAuth() { // 加载菜单按钮权限
-        this.publishButtonShow = this.$checkButoonAuth('system-manage-message-add');
       }
     },
     mounted() {
-      // 初始化菜单权限
-      this.loadButtonAuth();
       // 初始化完成组件的时候执行以下的逻辑
       this.handleSearch();
       this.tableHeight = window.innerHeight - this.$refs.msgTable.$el.offsetTop - 270

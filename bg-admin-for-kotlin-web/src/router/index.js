@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import iView from 'iview';
-import Util from '../libs/util';
+import Util from '../lib/util';
 import VueRouter from 'vue-router';
 import routers from './router';
 
@@ -35,3 +35,4 @@ router.afterEach((to) => {
   iView.LoadingBar.finish();
   window.scrollTo(0, 0);
 });
+

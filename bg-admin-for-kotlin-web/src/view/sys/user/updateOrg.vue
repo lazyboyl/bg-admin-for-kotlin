@@ -1,14 +1,14 @@
 <template>
-  <Modal v-model="show" :title="$t('org.updateTitle')" @on-ok="ok" :loading="loading" :mask-closable="false">
+  <Modal v-model="show" title="修改组织" @on-ok="ok" :loading="loading" :mask-closable="false">
     <Form ref="orgForm" :model="orgForm" :rules="orgFormRule">
-      <FormItem :label="$t('org.addParentOrgNameLabel')">
+      <FormItem label="父组织架构名称">
         <Input type="text" v-model="orgForm.parentOrgName" disabled/>
       </FormItem>
-      <FormItem :label="$t('org.addOrgNameLabel')" prop="orgName">
-        <Input type="text" :maxlength=50 v-model="orgForm.orgName" :placeholder="$t('org.addOrgNameHolder')"/>
+      <FormItem label="组织架构名称" prop="orgName">
+        <Input type="text" :maxlength=50 v-model="orgForm.orgName" placeholder="请输入组织架构名称"/>
       </FormItem>
-      <FormItem :label="$t('org.addOrgCodeLabel')" prop="orgCode">
-        <Input type="text" :maxlength=50 v-model="orgForm.orgCode" :placeholder="$t('org.addOrgCodeHolder')"/>
+      <FormItem label="组织架构编码" prop="orgCode">
+        <Input type="text" :maxlength=50 v-model="orgForm.orgCode" placeholder="请输入组织架构编码"/>
       </FormItem>
     </Form>
   </Modal>
@@ -39,7 +39,26 @@
           parentOrgId: 0,
           parentOrgName: '顶层组织架构'
         },
-        orgFormRule: this.getOrgFormRule()
+        orgFormRule: {
+          orgName: [
+            {required: true, message: '请输入组织架构名称', trigger: 'blur'},
+            {type: 'string', max: 50, message: '请输入不超过50长度的组织架构名称', trigger: 'blur'},
+            {
+              validator: this.checkOrgName({
+                response: 'exist'
+              }), trigger: 'blur'
+            }
+          ],
+          orgCode: [
+            {required: true, message: '请输入组织架构编码', trigger: 'blur'},
+            {type: 'string', max: 50, message: '请输入不超过50长度的组织架构名称', trigger: 'blur'},
+            {
+              validator: this.checkOrgCode({
+                response: 'exist'
+              }), trigger: 'blur'
+            }
+          ]
+        }
       }
     },
     methods: {
@@ -52,13 +71,13 @@
                 // 提交表单数据成功则关闭当前的modal框
                 this.closeModal(false);
                 // 同时调用父页面的刷新页面的方法
-                this.$emit('operateOrgUpdate',res.obj);
+                this.$emit('reloadTree');
               } else {
                 this.$Message.error(res.msg);
               }
             })
           } else {
-            this.$Message.error(this.$t('org.addOrgFail'));
+            this.$Message.error('表单验证不通过');
           }
           setTimeout(() => {
             this.loading = false;
@@ -67,28 +86,6 @@
             });
           }, 1000);
         });
-      },
-      getOrgFormRule() {
-        return {
-          orgName: [
-            {required: true, message: this.$t('org.addOrgNameRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('org.addOrgNameRuleMaxMessage'), trigger: 'blur'},
-            {
-              validator: this.checkOrgName({
-                response: 'exist'
-              }), trigger: 'blur'
-            }
-          ],
-          orgCode: [
-            {required: true, message: this.$t('org.addOrgCodeRuleMessage'), trigger: 'blur'},
-            {type: 'string', max: 50, message: this.$t('org.addOrgCodeRuleMaxMessage'), trigger: 'blur'},
-            {
-              validator: this.checkOrgCode({
-                response: 'exist'
-              }), trigger: 'blur'
-            }
-          ]
-        }
       },
       checkOrgCode() {
         let _this = this;
@@ -99,7 +96,7 @@
             if (res.obj.success == 'pass') {
               callback();
             } else {
-              callback(new Error(_this.$t('org.checkOrgFail')));
+              callback(new Error('组织编码已经存在'));
             }
           });
         };
@@ -113,16 +110,10 @@
             if (res.obj.success == 'pass') {
               callback();
             } else {
-              callback(new Error(_this.$t('org.checkOrgFail')));
+              callback(new Error('组织架构名称已经存在'));
             }
           });
         };
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.orgFormRule = _self.getOrgFormRule()
-        }, 200)
       },
       closeModal(val) {
         this.$emit('input', val);
@@ -146,14 +137,6 @@
         } else {// 反之则关闭页面
           this.closeModal(val);
         }
-      },
-      userLang() {
-        this.lazy()
-      }
-    },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
       }
     }
   }

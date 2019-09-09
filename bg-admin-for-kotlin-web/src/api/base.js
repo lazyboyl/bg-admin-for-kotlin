@@ -1,4 +1,4 @@
-import axios from '../libs/api.request';
+import axios from '../lib/api.request';
 import qs from 'qs';
 import config from '../config/run.config';
 

@@ -1,39 +1,26 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
 import {router} from './router/index'
-import iView from 'iview'
+// 引入国际化包
 import i18n from './local'
+import iView from 'iview'
 import 'iview/dist/styles/iview.css'
-import store from './store';
 import runConfig from './config/run.config';
-import JsEncrypt from 'jsencrypt';
 import iviewArea from 'iview-area';
-import {initInternationalization} from './api/sys/internationalization/internationalization.api';
-
+import store from './store';
+import JsEncrypt from 'jsencrypt';
 
 /**
  * 生成唯一的uuid
  * @returns {string}
  */
-Vue.prototype.$uuid = function () {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+Vue.prototype.$uuid = function(){
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
     return v.toString(16);
   });
-};
-
-/**
- * 全局的 鉴定按钮权限的方法
- * @param code 按钮编码
- * @returns {boolean} true表示鉴权通过，false表示鉴权不通过
- */
-Vue.prototype.$checkButoonAuth = function (code) {
-  let access = this.$store.getters.access;
-  for (let i = 0; i < access.length; i++) {
-      if(access[i] == code){
-        return true;
-      }
-  }
 };
 
 /**
@@ -48,19 +35,12 @@ Vue.prototype.$encruption = function (obj) {
   return encrypt.encrypt(obj);
 };
 
-Vue.config.productionTip = false
-
 Vue.use(iviewArea);
-
-Vue.use(iView, {
-  i18n: (key, value) => i18n.t(key, value)
-})
 
 /**
  * @description 全局注册应用配置
  */
 Vue.prototype.$runConfig = runConfig;
-
 
 /**
  * 表示当前的应用启动的时候是以mock的方式启动
@@ -68,6 +48,12 @@ Vue.prototype.$runConfig = runConfig;
 if (runConfig.runConfig.mock) {
   require('./config/mock/mock.js')
 }
+
+Vue.config.productionTip = false
+// 引入view的国际化
+Vue.use(iView, {
+  i18n: (key, value) => i18n.t(key, value)
+})
 
 // 格式化时间全局通用方法
 Vue.prototype.formatDate = function (date, fmt) {
@@ -91,22 +77,12 @@ Vue.prototype.formatDate = function (date, fmt) {
 }
 
 /* eslint-disable no-new */
-const app = new Vue({
+new Vue({
   el: '#app',
   router,
+  // 国际化初始化
   i18n,
   store: store,
   components: {App},
   template: '<App/>'
-});
-
-initInternationalization({}).then(res=>{
-  if(res.code==200){
-    for(let a in res.obj){
-      let v =require('iview/src/locale/lang/'+a);
-      app.$i18n.setLocaleMessage(a,Object.assign(v.default,res.obj[a]));
-    }
-  }
-});
-
-
+})

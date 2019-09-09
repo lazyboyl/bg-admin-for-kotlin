@@ -1,12 +1,12 @@
 <template>
   <div>
-    <Card :title="$t('role.title')">
+    <Card title="角色管理">
       <div>
         <div style="display:inline-block;float:left;">
-          <Button type="success" v-show="addRoleButtonShow" @click="addRole">+{{$t('role.addButton')}}</Button>
+          <Button type="success" @click="addRole">+新增角色</Button>
         </div>
         <div style="display:inline-block;float:right;">
-          <Input v-model="search" suffix="ios-search" :placeholder="$t('role.searchText')" style="width: auto"
+          <Input v-model="search" suffix="ios-search" placeholder="请输入查询信息" style="width: auto"
                  :search=true @on-search="handleSearch"/>
         </div>
       </div>
@@ -25,19 +25,13 @@
 
           <template slot-scope="{ row, index }" slot="action">
             <div v-if="editIndex === index">
-              <Button size="small" type="success" @click="handleUpdate(index)">{{$t('button.save')}}</Button>
-              <Button size="small" type="error" @click="editIndex = -1">{{$t('button.cancel')}}</Button>
+              <Button size="small" type="success" @click="handleUpdate(index)">保存</Button>
+              <Button size="small" type="error" @click="editIndex = -1">取消</Button>
             </div>
             <div v-else>
-              <Button type="success" v-show="editRoleButtonShow" @click="handleEdit(row, index)" size="small">
-                {{$t('button.edit')}}
-              </Button>
-              <Button type="primary" v-show="editRoleButtonShow" @click="handleModify(row)" size="small">
-                {{$t('button.modify')}}
-              </Button>
-              <Button type="error" v-show="deleteRoleButtonShow" @click="handleDelete(row, index)" size="small">
-                {{$t('button.delete')}}
-              </Button>
+              <Button type="success" @click="handleEdit(row, index)" size="small">编辑</Button>
+              <Button type="primary" @click="handleModify(row)" size="small">修改</Button>
+              <Button type="error" @click="handleDelete(row, index)" size="small">删除</Button>
             </div>
           </template>
         </Table>
@@ -57,31 +51,55 @@
   import editRole from './editRole'
 
   export default {
-    components: {
+    components:{
       addRole,
       editRole
     },
     data() {
       return {
-        addRoleButtonShow: false,
-        editRoleButtonShow: false,
-        deleteRoleButtonShow: false,
         addShow: false,
-        editShow: false,
-        roleId: '',
+        editShow :false,
+        roleId:'',
         search: '',
         roleData: [],
-        columns: this.getRoleColumns(),
+        columns: [
+          {
+            title: '角色名称',
+            slot: 'roleName',
+            key: 'roleName',
+            sortable: true
+          },
+          {
+            title: '角色编码',
+            slot: 'roleCode',
+            key: 'roleCode',
+            sortable: true
+          },
+          {
+            title: '创建时间',
+            key: 'crtDate',
+            sortable: true,
+            render: (h,params)=>{
+              return h('div',
+                this.formatDate(new Date(params.row.crtDate),'yyyy/MM/dd hh:mm:ss')
+              )
+            }
+          },
+          {
+            title: '操作',
+            slot: 'action'
+          }
+        ],
         total: 0,
         current: 1,
         pageSize: 10,
-        key: 'crtDate',
-        order: 'desc',
+        key:'crtDate',
+        order:'desc',
         editIndex: -1,  // 当前聚焦的输入框的行数
         editRoleId: '',
         editRoleName: '',
         editRoleCode: '',
-        tableHeight: 200
+        tableHeight:200
       }
     },
     methods: {
@@ -96,10 +114,10 @@
         this.pageSize = pageSize;
         this.handleSearch();
       },
-      onSortChange(sort) {
-        if (sort.order == 'normal') {
+      onSortChange(sort){
+        if(sort.order=='normal'){
           this.order = '';
-        } else {
+        }else{
           this.key = sort.key;
           this.order = sort.order;
         }
@@ -107,36 +125,36 @@
       },
       handleDelete(row, index) {
         this.$Modal.confirm({
-          title: this.$t('modal.title'),
-          content: '<p>' + this.$t('role.deleteContent') + '</p>',
+          title: '删除角色',
+          content: '<p>是否删除当前选中的角色</p>',
           onOk: () => {
             deleteRole({roleId: row.roleId}).then(res => {
               if (res.code == 200) {
-                this.$Message.success(this.$t('role.deleteRoleSuccess'));
+                this.$Message.success(res.msg);
                 // 删除数据成功同时刷新grid
                 this.handleSearch();
               } else {
-                this.$Message.warning(this.$t('role.deleteRoleFail'));
+                this.$Message.warning(res.msg);
               }
             });
           },
           onCancel: () => {
-            this.$Message.info(this.$t('dict.deleteCancel'));
+            this.$Message.info('取消');
           }
         });
       },
       handleUpdate(index) {
         updateRole({roleId: this.editRoleId, roleName: this.editRoleName, roleCode: this.editRoleCode}).then(res => {
           if (res.code == 200) {
-            this.$Message.success(this.$t('role.updateRoleSuccess'))
+            this.$Message.success(res.msg)
             this.editIndex = -1
             this.handleSearch()
           } else {
-            this.$Message.error(this.$t('role.updateRoleFail') + ',' + res.msg)
+            this.$Message.error(res.msg)
           }
         });
       },
-      handleModify(row) {
+      handleModify(row){
         this.roleId = row.roleId
         this.editShow = true
       },
@@ -161,72 +179,19 @@
           orderByValue
         }).then(res => {
           if (res.code == 200) {
-            this.$Message.success(this.$t('role.searchSuccessText'))
+            this.$Message.success(res.msg)
             _this.total = res.obj.total
             _this.roleData = res.obj.rows
           } else {
-            this.$Message.error(this.$t('role.searchFailText') + ',' + res.msg)
+            this.$Message.error(res.msg)
           }
         });
-      },
-      getRoleColumns() {
-        return [
-          {
-            title: this.$t('role.columns.roleNameTitle'),
-            slot: 'roleName',
-            key: 'roleName',
-            sortable: true
-          },
-          {
-            title: this.$t('role.columns.roleCodeTitle'),
-            slot: 'roleCode',
-            key: 'roleCode',
-            sortable: true
-          },
-          {
-            title: this.$t('role.columns.roleCrtDateTitle'),
-            key: 'crtDate',
-            sortable: true,
-            render: (h, params) => {
-              return h('div',
-                this.formatDate(new Date(params.row.crtDate), 'yyyy/MM/dd hh:mm:ss')
-              )
-            }
-          },
-          {
-            title: this.$t('role.columns.operationTitle'),
-            slot: 'action'
-          }
-        ]
-      },
-      lazy() {
-        let _self = this
-        setTimeout(function () {
-          _self.columns = _self.getRoleColumns()
-        }, 200)
-      },
-      loadButtonAuth() { // 加载菜单按钮权限
-        this.addRoleButtonShow = this.$checkButoonAuth('system-manage-role-add');
-        this.deleteRoleButtonShow = this.$checkButoonAuth('system-manage-role-delete');
-        this.editRoleButtonShow = this.$checkButoonAuth('system-manage-role-update');
       }
     },
     mounted() {
-      // 初始化菜单权限
-      this.loadButtonAuth();
       // 初始化完成组件的时候执行以下的逻辑
       this.handleSearch();
       this.tableHeight = window.innerHeight - this.$refs.roleTable.$el.offsetTop - 270
-    },
-    computed: {
-      userLang() {
-        return this.$store.getters.userLang;
-      }
-    },
-    watch: {
-      userLang() {
-        this.lazy()
-      }
     }
   }
 </script>
